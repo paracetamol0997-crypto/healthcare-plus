@@ -61,14 +61,16 @@ if (fs.existsSync(clientDistPath)) {
   });
 }
 
-// Start listening
-app.listen(PORT, () => {
-  console.log(`\n=================================================`);
-  console.log(`🌿 Health Companion AI - Fully Unified Web Application`);
-  console.log(`   ➜ Open Complete Website: http://localhost:${PORT}`);
-  console.log(`   - Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`   - Single Port: Frontend UI + Backend APIs + Database + AI`);
-  console.log(`=================================================\n`);
-});
+// Start listening if not running as a Vercel serverless function
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`\n=================================================`);
+    console.log(`🌿 Health Companion AI - Fully Unified Web Application`);
+    console.log(`   ➜ Open Complete Website: http://localhost:${PORT}`);
+    console.log(`   - Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`   - Single Port: Frontend UI + Backend APIs + Database + AI`);
+    console.log(`=================================================\n`);
+  });
+}
 
 module.exports = app;
