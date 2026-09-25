@@ -1,0 +1,220 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "name": "Pavan",
+      "email": "pavan@healthcompanion.ai",
+      "passwordHash": "$2a$10$wJjH.7bC8Ym3D3sWk5gQPe6v7rLhFwGkKkUeYw5OqZ5Xq0tFp4vKG",
+      "age": 28,
+      "gender": "Male",
+      "heightCm": 175,
+      "weightKg": 72,
+      "fitnessGoals": "Maintain daily 10,000 steps, build core strength, and improve posture.",
+      "mentalWellnessGoals": "Manage work stress, practice daily 5-minute breathing, and achieve 7.5 hours of sleep.",
+      "createdAt": "2026-09-25T17:06:37.570Z"
+    }
+  ],
+  "moodLogs": [
+    {
+      "id": 1,
+      "userId": 1,
+      "moodLevel": 4,
+      "moodTag": "Calm",
+      "note": "Started the day with a gentle walk in the park.",
+      "loggedAt": "2026-09-23T17:06:37.570Z"
+    },
+    {
+      "id": 2,
+      "userId": 1,
+      "moodLevel": 3,
+      "moodTag": "Neutral",
+      "note": "Busy afternoon with meetings, felt a bit rushed.",
+      "loggedAt": "2026-09-24T17:06:37.570Z"
+    },
+    {
+      "id": 3,
+      "userId": 1,
+      "moodLevel": 5,
+      "moodTag": "Joyful",
+      "note": "Had a great sleep and completed my morning stretch!",
+      "loggedAt": "2026-09-25T17:06:37.570Z"
+    }
+  ],
+  "activityLogs": [
+    {
+      "id": 1,
+      "userId": 1,
+      "activityType": "steps",
+      "metricValue": 8420,
+      "details": {
+        "calories": 340,
+        "distanceKm": 6.2
+      },
+      "logDate": "2026-09-25"
+    },
+    {
+      "id": 2,
+      "userId": 1,
+      "activityType": "water",
+      "metricValue": 6,
+      "details": {
+        "target": 8,
+        "unit": "glasses"
+      },
+      "logDate": "2026-09-25"
+    },
+    {
+      "id": 3,
+      "userId": 1,
+      "activityType": "workout",
+      "metricValue": 30,
+      "details": {
+        "workoutType": "Yoga & Stretching",
+        "intensity": "Moderate",
+        "calories": 150
+      },
+      "logDate": "2026-09-25"
+    },
+    {
+      "id": 4,
+      "userId": 1,
+      "activityType": "steps",
+      "metricValue": 7100,
+      "details": {
+        "calories": 290,
+        "distanceKm": 5.3
+      },
+      "logDate": "2026-09-24"
+    },
+    {
+      "id": 5,
+      "userId": 1,
+      "activityType": "steps",
+      "metricValue": 9800,
+      "details": {
+        "calories": 410,
+        "distanceKm": 7.4
+      },
+      "logDate": "2026-09-23"
+    },
+    {
+      "id": 6,
+      "userId": 1,
+      "activityType": "steps",
+      "metricValue": 6500,
+      "details": {
+        "calories": 260,
+        "distanceKm": 4.8
+      },
+      "logDate": "2026-09-22"
+    },
+    {
+      "id": 7,
+      "userId": 1,
+      "activityType": "steps",
+      "metricValue": 10200,
+      "details": {
+        "calories": 440,
+        "distanceKm": 7.8
+      },
+      "logDate": "2026-09-21"
+    }
+  ],
+  "journalEntries": [
+    {
+      "id": 1,
+      "userId": 1,
+      "title": "Finding peace amidst deadlines",
+      "content": "Today was packed with responsibilities, but I took three 2-minute breathers. It made a world of difference to my stress levels. Grateful for my health and warm herbal tea.",
+      "moodAssociated": "Calm",
+      "tags": [
+        "Gratitude",
+        "Mindfulness",
+        "Work-Life"
+      ],
+      "createdAt": "2026-09-24T17:06:37.570Z"
+    }
+  ],
+  "chatMessages": [
+    {
+      "id": 1,
+      "userId": 1,
+      "companionType": "mind",
+      "role": "assistant",
+      "content": "Hello Pavan! I'm your Mind Companion AI. I'm here to support your mental well-being, guide breathing exercises, and listen whenever you need a safe space. How are you feeling today?",
+      "createdAt": "2026-09-25T16:06:37.570Z"
+    },
+    {
+      "id": 2,
+      "userId": 1,
+      "companionType": "fit",
+      "role": "assistant",
+      "content": "Hi Pavan! I'm your Fit Companion AI. Whether you're aiming for 10,000 steps, a balanced post-workout meal, or a 15-minute desk stretch, I'm ready to keep you moving strong. What's on your fitness agenda today?",
+      "createdAt": "2026-09-25T16:06:37.570Z"
+    },
+    {
+      "id": 3,
+      "userId": 1,
+      "companionType": "mind",
+      "role": "user",
+      "content": "I am feeling stressed today",
+      "createdAt": "2026-09-25T17:06:54.059Z"
+    },
+    {
+      "id": 4,
+      "userId": 1,
+      "companionType": "mind",
+      "role": "assistant",
+      "content": "I hear you, Guest User, and I'm really glad you reached out. Feeling stressed or overwhelmed is completely valid, especially with everything you juggle.\n\nHere is a quick 3-step calm down technique you can try right now:\n1. **The 4-4-4-4 Box Breath**: Inhale gently through your nose for 4 counts, hold for 4 counts, release slowly through your mouth for 4 counts, and rest for 4 counts. Doing just 3 rounds sends an immediate relaxation signal to your vagus nerve.\n2. **5-4-3-2-1 Sensory Grounding**: Name 5 things you can see around you, 4 things you can physically touch, 3 sounds you can hear, 2 scents, and 1 positive thought about yourself.\n3. **Release physical tension**: Gently drop your shoulders away from your ears, unclench your jaw, and let your belly relax.\n\nWould you like to try a guided breathing session, or would it feel better to talk through what is causing this stress? Remember, take it one breath at a time.",
+      "createdAt": "2026-09-25T17:06:54.061Z"
+    },
+    {
+      "id": 5,
+      "userId": 1,
+      "companionType": "mind",
+      "role": "user",
+      "content": "Can you write Python code to sort an array?",
+      "createdAt": "2026-09-25T17:07:03.833Z"
+    },
+    {
+      "id": 6,
+      "userId": 1,
+      "companionType": "mind",
+      "role": "assistant",
+      "content": "I am designed to help with mental wellness and physical health. How can I support your wellness journey today?",
+      "createdAt": "2026-09-25T17:07:03.834Z"
+    },
+    {
+      "id": 7,
+      "userId": 1,
+      "companionType": "fit",
+      "role": "user",
+      "content": "Who won the Oscars for best picture?",
+      "createdAt": "2026-09-25T17:15:47.324Z"
+    },
+    {
+      "id": 8,
+      "userId": 1,
+      "companionType": "fit",
+      "role": "assistant",
+      "content": "I am designed to help with mental wellness and physical health. How can I support your wellness journey today?",
+      "createdAt": "2026-09-25T17:15:47.326Z"
+    },
+    {
+      "id": 9,
+      "userId": 1,
+      "companionType": "fit",
+      "role": "user",
+      "content": "I want a beginner gym plan.",
+      "createdAt": "2026-09-25T17:16:05.069Z"
+    },
+    {
+      "id": 10,
+      "userId": 1,
+      "companionType": "fit",
+      "role": "assistant",
+      "content": "I love your enthusiasm, Guest User! Building consistent physical activity is the ultimate investment in your long-term health and mood. 💪\n\nHere is a balanced **Full-Body Beginner Routine** you can do anywhere:\n\n**1. Warm-Up (3–5 minutes):**\n- Arm circles and shoulder rolls: 30 seconds\n- Cat-Cow spine mobility: 10 repetitions\n- Gentle bodyweight squats: 12 repetitions\n\n**2. Main Movement (2 to 3 sets):**\n- **Chair or Bodyweight Squats**: 10–12 reps (strengthens quads, glutes, core)\n- **Incline Push-ups (against a wall or sturdy table)**: 8–10 reps (chest and triceps)\n- **Glute Bridges**: 12 reps (hips and lower back stability)\n- **Plank Hold**: 20–30 seconds (deep core support)\n\n**3. Cool-Down & Stretch (3 minutes):**\n- Hamstring stretch: 30 seconds each side\n- Chest-opening doorway stretch: 30 seconds\n- Child's pose with deep belly breathing.\n\nRemember to sip water throughout. Would you like to log this in your Workout Tracker, or would you like to focus on cardio or home yoga today?",
+      "createdAt": "2026-09-25T17:16:05.070Z"
+    }
+  ]
+}

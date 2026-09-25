@@ -1,0 +1,77 @@
+@import "tailwindcss";
+
+@theme {
+  --color-wellness-blue: #EAF4FF;
+  --color-wellness-green: #E8F5E9;
+  --color-wellness-cream: #FCFBF7;
+  --color-wellness-gray: #F5F5F5;
+  --color-wellness-navy: #1A365D;
+  --color-wellness-dark: #0B1320;
+  --color-wellness-darkCard: #152238;
+  --color-wellness-darkBorder: #233858;
+  --color-wellness-teal: #0D9488;
+  --color-wellness-sage: #4B7B68;
+  --color-wellness-lavender: #E9D5FF;
+}
+
+@layer base {
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Custom Soft Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #334155;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Glassmorphism helpers */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+}
+
+.dark .glass-panel {
+  background: rgba(21, 34, 56, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Breathing animation helpers */
+@keyframes breathingCircle {
+  0%, 100% {
+    transform: scale(0.85);
+    box-shadow: 0 0 35px rgba(59, 130, 246, 0.3);
+  }
+  50% {
+    transform: scale(1.25);
+    box-shadow: 0 0 65px rgba(16, 185, 129, 0.5);
+  }
+}
+
+.breathing-active {
+  animation: breathingCircle ease-in-out infinite;
+}

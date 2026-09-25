@@ -1,0 +1,22 @@
+{
+  "name": "health-companion-ai",
+  "version": "1.0.0",
+  "description": "Health Companion AI - Personal wellness companion for mental and physical health",
+  "scripts": {
+    "install:all": "npm --prefix client install && npm --prefix server install",
+    "server": "node server/server.js",
+    "client": "npm --prefix client run dev",
+    "build": "npm --prefix client run build"
+  },
+  "keywords": [
+    "health",
+    "wellness",
+    "ai",
+    "mental-health",
+    "fitness",
+    "react",
+    "express"
+  ],
+  "author": "Health Companion AI Team",
+  "license": "MIT"
+}
