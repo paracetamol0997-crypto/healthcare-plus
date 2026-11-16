@@ -91,8 +91,19 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const [customKey, setCustomKey] = useState<string>(() => localStorage.getItem('hc_gemini_key') || '');
   const [keySaved, setKeySaved] = useState<boolean>(false);
 
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatScrollContainerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const currentCompanion = COMPANIONS.find(c => c.id === selectedCompanionId) || COMPANIONS[2];
+
+  const scrollToBottom = (behavior: ScrollBehavior = 'smooth') => {
+    if (chatScrollContainerRef.current) {
+      const el = chatScrollContainerRef.current;
+      el.scrollTo({
+        top: el.scrollHeight,
+        behavior
+      });
+    }
+  };
 
   // Load chat history or set initial welcome message
   useEffect(() => {
@@ -114,6 +125,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
               }
             ]);
           }
+          requestAnimationFrame(() => scrollToBottom('auto'));
         }
       } catch (err) {
         if (isMounted) {
@@ -126,6 +138,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
               createdAt: new Date().toISOString()
             }
           ]);
+          requestAnimationFrame(() => scrollToBottom('auto'));
         }
       }
     }
@@ -135,9 +148,12 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
     };
   }, [selectedCompanionId]);
 
-  // Auto-scroll to bottom on new messages
+  // Auto-scroll within the chat container only (preventing page/window from scrolling)
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const frameId = requestAnimationFrame(() => {
+      scrollToBottom('smooth');
+    });
+    return () => cancelAnimationFrame(frameId);
   }, [messages, loading]);
 
   const handleSendMessage = async (textToSend?: string) => {
@@ -145,6 +161,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
     if (!message || loading) return;
 
     setInputText('');
+    inputRef.current?.focus({ preventScroll: true });
 
     const tempUserMsg: ChatMessage = {
       id: Date.now(),
@@ -181,6 +198,16 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
       setMessages(prev => [...prev, fallbackMsg]);
     } finally {
       setLoading(false);
+      requestAnimationFrame(() => {
+        inputRef.current?.focus({ preventScroll: true });
+      });
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
     }
   };
 
@@ -292,7 +319,10 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
       </div>
 
       {/* Messages Scroll Area */}
-      <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
+      <div
+        ref={chatScrollContainerRef}
+        className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 overscroll-contain"
+      >
         
         {/* Guardrail Policy Disclaimer Banner */}
         <div className="p-3 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200/60 dark:border-emerald-900/40 flex items-start gap-2.5 text-xs text-emerald-800 dark:text-emerald-200">
@@ -382,8 +412,6 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
             </div>
           </div>
         )}
-
-        <div ref={messagesEndRef} />
       </div>
 
       {/* Suggested Quick Prompts */}
@@ -412,9 +440,11 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
           className="flex items-center gap-2"
         >
           <input
+            ref={inputRef}
             type="text"
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
+            onKeyDown={handleKeyDown}
             placeholder={`Ask ${currentCompanion.name} anything about fitness, nutrition, stress, or habits...`}
             className="flex-1 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-xs sm:text-sm text-slate-800 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
           />
