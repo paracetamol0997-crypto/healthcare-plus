@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *, [data-theme="dark"], [data-theme="dark"] *));
+
 @theme {
   --color-wellness-blue: #EAF4FF;
   --color-wellness-green: #E8F5E9;
@@ -19,6 +21,15 @@
     font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    background-color: var(--color-wellness-cream);
+    color: #1e293b;
+    transition: background-color 0.25s ease, color 0.25s ease;
+  }
+
+  html.dark body,
+  [data-theme="dark"] body {
+    background-color: var(--color-wellness-dark);
+    color: #f1f5f9;
   }
 }
 
