@@ -33,8 +33,48 @@ interface WorkoutPlan {
   category: string;
   calories: string;
   description: string;
+  image: string;
   exercises: { name: string; reps: string; tip: string }[];
 }
+
+const FIT_ACTIVITIES = [
+  {
+    id: 'overview',
+    title: 'Daily Steps & Activity',
+    subtitle: 'Cardiovascular Vitality',
+    desc: 'Pedometry log, caloric burn calculations, distance tracking, and quick increment buttons.',
+    image: 'https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?auto=format&fit=crop&w=600&q=80',
+    badge: '10k Target',
+    buttonText: 'View Tracker'
+  },
+  {
+    id: 'plans',
+    title: 'Guided Exercise Plans',
+    subtitle: 'Strength & Mobility',
+    desc: 'Desk worker posture resets, full-body beginner routines, and yoga flows with live timers.',
+    image: 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=600&q=80',
+    badge: 'Step-by-Step',
+    buttonText: 'Start Routine'
+  },
+  {
+    id: 'nutrition',
+    title: 'Nutrition & Clean Plate',
+    subtitle: 'Cellular Nourishment',
+    desc: 'The 50/25/25 anti-inflammatory plate method, micronutrients, and 8-cup hydration station.',
+    image: 'https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=600&q=80',
+    badge: 'Clean Plate',
+    buttonText: 'Explore Food'
+  },
+  {
+    id: 'chat',
+    title: 'Fit Companion AI Coach',
+    subtitle: '24/7 Trainer Guidance',
+    desc: 'Ask about exercise form, tailored home workout variations, and post-workout recovery tips.',
+    image: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?auto=format&fit=crop&w=600&q=80',
+    badge: 'AI Coach',
+    buttonText: 'Ask Trainer'
+  }
+];
 
 const EXERCISE_PLANS: WorkoutPlan[] = [
   {
@@ -45,6 +85,7 @@ const EXERCISE_PLANS: WorkoutPlan[] = [
     category: 'Stretching & Mobility',
     calories: '25 kcal',
     description: 'Relieve neck tension, open tight chest muscles, and decompress your lumbar spine.',
+    image: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=600&q=80',
     exercises: [
       { name: 'Chin Tucks & Neck Rolls', reps: '10 reps each side', tip: 'Slow and gentle. Keep shoulders relaxed.' },
       { name: 'Doorway Chest Opener', reps: '30 seconds hold', tip: 'Place forearm against frame and gently rotate away.' },
@@ -60,6 +101,7 @@ const EXERCISE_PLANS: WorkoutPlan[] = [
     category: 'Gym / Home Strength',
     calories: '140 kcal',
     description: 'Build core stability, protect knees, and ignite functional metabolic energy.',
+    image: 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=600&q=80',
     exercises: [
       { name: 'Bodyweight or Chair Squats', reps: '3 sets of 10 reps', tip: 'Drive through your heels; keep knees tracking over toes.' },
       { name: 'Incline Wall or Bench Push-ups', reps: '3 sets of 8 reps', tip: 'Keep a straight line from heels to head.' },
@@ -75,6 +117,7 @@ const EXERCISE_PLANS: WorkoutPlan[] = [
     category: 'Yoga & Balance',
     calories: '65 kcal',
     description: 'Awaken joints, oxygenate blood flow, and establish a centered focus for the day.',
+    image: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=600&q=80',
     exercises: [
       { name: 'Cat-Cow Spinal Breathing', reps: '8 slow cycles', tip: 'Inhale arching up, exhale rounding your spine.' },
       { name: 'Downward-Facing Dog', reps: '5 slow breaths', tip: 'Pedal heels to gently wake up hamstrings.' },
@@ -190,8 +233,73 @@ export const PhysicalHealthPage: React.FC = () => {
       </section>
 
       {/* Main Content Area */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 space-y-8">
         
+        {/* Fit Activities Visual Showcase Grid */}
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-xl font-extrabold text-slate-900 dark:text-white">
+                Physical Vitality Activities
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Energize your body with functional movement, daily steps, hydration, and nutrition
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {FIT_ACTIVITIES.map((act) => {
+              const isCurrent = activeTab === act.id;
+              return (
+                <div
+                  key={act.id}
+                  onClick={() => setActiveTab(act.id as any)}
+                  className={`group cursor-pointer overflow-hidden rounded-3xl bg-white dark:bg-wellness-darkCard border transition-all duration-300 hover:shadow-xl hover:-translate-y-1 flex flex-col justify-between ${
+                    isCurrent
+                      ? 'border-blue-500 ring-2 ring-blue-500/30 shadow-md'
+                      : 'border-slate-200 dark:border-slate-800 hover:border-slate-300'
+                  }`}
+                >
+                  <div className="relative h-28 w-full overflow-hidden">
+                    <img
+                      src={act.image}
+                      alt={act.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent" />
+                    <span className="absolute top-2 right-2 text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-blue-600/90 text-white shadow-sm backdrop-blur-sm">
+                      {act.badge}
+                    </span>
+                    <span className="absolute bottom-2 left-3 right-3 text-xs font-bold text-white drop-shadow truncate">
+                      {act.title}
+                    </span>
+                  </div>
+
+                  <div className="p-3.5 flex-1 flex flex-col justify-between space-y-2">
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 block mb-0.5">
+                        {act.subtitle}
+                      </span>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
+                        {act.desc}
+                      </p>
+                    </div>
+
+                    <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                      <span className={`text-[11px] font-bold ${isCurrent ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 group-hover:text-blue-600'} transition-colors`}>
+                        {isCurrent ? '● Active Now' : act.buttonText}
+                      </span>
+                      <span className="text-xs text-slate-400 group-hover:translate-x-1 transition-transform">&rarr;</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
         {/* TAB 1: OVERVIEW & TRACKERS */}
         {activeTab === 'overview' && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -243,103 +351,122 @@ export const PhysicalHealthPage: React.FC = () => {
                 <button
                   key={plan.id}
                   onClick={() => setSelectedPlan(plan)}
-                  className={`w-full text-left p-5 rounded-3xl border transition-all ${
+                  className={`w-full text-left p-3.5 rounded-3xl border transition-all flex items-center gap-3.5 ${
                     selectedPlan.id === plan.id
-                      ? 'border-blue-500 bg-blue-50/60 dark:bg-blue-950/40 ring-1 ring-blue-500 shadow-sm'
+                      ? 'border-blue-500 bg-blue-50/70 dark:bg-blue-950/50 ring-2 ring-blue-500/20 shadow-md'
                       : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-wellness-darkCard hover:border-slate-300'
                   }`}
                 >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-blue-600 dark:text-blue-400">
-                      {plan.category}
-                    </span>
-                    <span className="text-xs text-slate-400">{plan.duration}</span>
+                  <img
+                    src={plan.image}
+                    alt={plan.title}
+                    className="w-16 h-16 rounded-2xl object-cover shrink-0 shadow-sm"
+                    loading="lazy"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-blue-600 dark:text-blue-400">
+                        {plan.category}
+                      </span>
+                      <span className="text-[11px] text-slate-400 font-semibold">{plan.duration}</span>
+                    </div>
+                    <h5 className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white truncate">{plan.title}</h5>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1">{plan.description}</p>
                   </div>
-                  <h5 className="font-bold text-sm text-slate-900 dark:text-white mb-1">{plan.title}</h5>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">{plan.description}</p>
                 </button>
               ))}
             </div>
 
             {/* Plan Details & Step-by-Step (2 Cols) */}
-            <div className="lg:col-span-2 p-6 sm:p-8 rounded-3xl bg-white dark:bg-wellness-darkCard border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-5">
-                <div>
-                  <span className="text-xs font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">
-                    {selectedPlan.category} &bull; {selectedPlan.level}
+            <div className="lg:col-span-2 overflow-hidden rounded-3xl bg-white dark:bg-wellness-darkCard border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
+              
+              {/* Routine Image Header */}
+              <div className="relative h-44 sm:h-52 w-full overflow-hidden">
+                <img
+                  src={selectedPlan.image}
+                  alt={selectedPlan.title}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
+                <div className="absolute top-4 right-4 flex items-center gap-2">
+                  <span className="text-xs font-bold px-3 py-1 rounded-full bg-blue-600/90 text-white shadow-sm backdrop-blur-sm">
+                    {selectedPlan.level}
                   </span>
-                  <h3 className="font-extrabold text-xl text-slate-900 dark:text-white mt-1">
+                  <span className="text-xs font-bold px-3 py-1 rounded-full bg-white/20 text-white backdrop-blur-sm">
+                    ~{selectedPlan.calories}
+                  </span>
+                </div>
+                <div className="absolute bottom-4 left-6 right-6 text-white space-y-1">
+                  <span className="text-xs font-extrabold uppercase tracking-wider text-blue-300">
+                    {selectedPlan.category} &bull; {selectedPlan.duration}
+                  </span>
+                  <h3 className="font-black text-xl sm:text-2xl drop-shadow-md">
                     {selectedPlan.title}
                   </h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{selectedPlan.description}</p>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <div className="text-right">
-                    <span className="text-xs font-bold text-slate-900 dark:text-white block">{selectedPlan.duration}</span>
-                    <span className="text-[10px] text-slate-400">~{selectedPlan.calories}</span>
-                  </div>
+                  <p className="text-xs text-slate-200 line-clamp-1">{selectedPlan.description}</p>
                 </div>
               </div>
 
-              {/* Active Exercise Timer */}
-              {activeTimer !== null && (
-                <div className="p-4 rounded-2xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-900 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Clock className="w-5 h-5 text-blue-600 animate-spin" />
-                    <div>
-                      <span className="text-xs font-bold text-blue-900 dark:text-blue-200 block">Stretch / Hold Timer</span>
-                      <span className="text-xl font-black text-blue-600">{activeTimer}s</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => setTimerRunning(!timerRunning)}
-                      className="px-3 py-1.5 rounded-xl bg-blue-600 text-white font-bold text-xs"
-                    >
-                      {timerRunning ? 'Pause' : 'Resume'}
-                    </button>
-                    <button
-                      onClick={() => setActiveTimer(null)}
-                      className="text-xs text-slate-500 hover:text-slate-700"
-                    >
-                      Dismiss
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* Step-by-Step Exercise Cards */}
-              <div className="space-y-3">
-                <h4 className="font-bold text-sm text-slate-900 dark:text-white">Movement Steps</h4>
-                {selectedPlan.exercises.map((ex, idx) => (
-                  <div
-                    key={idx}
-                    className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-800 flex items-start justify-between gap-4"
-                  >
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <span className="w-5 h-5 rounded-full bg-blue-100 dark:bg-blue-950 text-blue-600 text-xs font-bold flex items-center justify-center shrink-0">
-                          {idx + 1}
-                        </span>
-                        <h5 className="font-bold text-sm text-slate-800 dark:text-slate-200">{ex.name}</h5>
+              <div className="p-6 sm:p-8 pt-0 space-y-6">
+                {/* Active Exercise Timer */}
+                {activeTimer !== null && (
+                  <div className="p-4 rounded-2xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-900 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Clock className="w-5 h-5 text-blue-600 animate-spin" />
+                      <div>
+                        <span className="text-xs font-bold text-blue-900 dark:text-blue-200 block">Stretch / Hold Timer</span>
+                        <span className="text-xl font-black text-blue-600">{activeTimer}s</span>
                       </div>
-                      <p className="text-xs text-slate-500 pl-7">{ex.tip}</p>
-                      <span className="text-xs font-semibold text-blue-600 dark:text-blue-400 pl-7 block">
-                        Target: {ex.reps}
-                      </span>
                     </div>
-
-                    {ex.reps.includes('second') && (
+                    <div className="flex items-center gap-2">
                       <button
-                        onClick={() => startExerciseTimer(30)}
-                        className="px-3 py-1.5 rounded-xl bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 text-xs font-bold hover:bg-blue-200 shrink-0"
+                        onClick={() => setTimerRunning(!timerRunning)}
+                        className="px-3 py-1.5 rounded-xl bg-blue-600 text-white font-bold text-xs"
                       >
-                        ⏱ 30s Timer
+                        {timerRunning ? 'Pause' : 'Resume'}
                       </button>
-                    )}
+                      <button
+                        onClick={() => setActiveTimer(null)}
+                        className="text-xs text-slate-500 hover:text-slate-700"
+                      >
+                        Dismiss
+                      </button>
+                    </div>
                   </div>
-                ))}
+                )}
+
+                {/* Step-by-Step Exercise Cards */}
+                <div className="space-y-3">
+                  <h4 className="font-bold text-sm text-slate-900 dark:text-white">Movement Steps</h4>
+                  {selectedPlan.exercises.map((ex, idx) => (
+                    <div
+                      key={idx}
+                      className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-800 flex items-start justify-between gap-4"
+                    >
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="w-5 h-5 rounded-full bg-blue-100 dark:bg-blue-950 text-blue-600 text-xs font-bold flex items-center justify-center shrink-0">
+                            {idx + 1}
+                          </span>
+                          <h5 className="font-bold text-sm text-slate-800 dark:text-slate-200">{ex.name}</h5>
+                        </div>
+                        <p className="text-xs text-slate-500 pl-7">{ex.tip}</p>
+                        <span className="text-xs font-semibold text-blue-600 dark:text-blue-400 pl-7 block">
+                          Target: {ex.reps}
+                        </span>
+                      </div>
+
+                      {ex.reps.includes('second') && (
+                        <button
+                          onClick={() => startExerciseTimer(30)}
+                          className="px-3 py-1.5 rounded-xl bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 text-xs font-bold hover:bg-blue-200 shrink-0"
+                        >
+                          ⏱ 30s Timer
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -360,28 +487,64 @@ export const PhysicalHealthPage: React.FC = () => {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="p-5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900/40 space-y-2">
-                  <span className="text-2xl">🥦</span>
-                  <h4 className="font-bold text-sm text-emerald-800 dark:text-emerald-300">50% Colorful Greens</h4>
-                  <p className="text-xs text-slate-600 dark:text-slate-400">
-                    High fiber, micronutrients, polyphenols, and prebiotics for optimal gut biome and mental clarity.
-                  </p>
+                <div className="group overflow-hidden rounded-2xl bg-emerald-50/60 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900/40 flex flex-col justify-between">
+                  <div className="relative h-28 w-full overflow-hidden">
+                    <img
+                      src="https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=400&q=80"
+                      alt="Fresh colorful greens and salad"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                    <span className="absolute bottom-2 left-3 text-xs font-bold text-white drop-shadow">
+                      50% Plate Proportion
+                    </span>
+                  </div>
+                  <div className="p-4 space-y-1.5">
+                    <h4 className="font-bold text-sm text-emerald-800 dark:text-emerald-300">50% Colorful Greens</h4>
+                    <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                      High fiber, micronutrients, polyphenols, and prebiotics for optimal gut biome and mental clarity.
+                    </p>
+                  </div>
                 </div>
 
-                <div className="p-5 rounded-2xl bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/40 space-y-2">
-                  <span className="text-2xl">🥚</span>
-                  <h4 className="font-bold text-sm text-blue-800 dark:text-blue-300">25% Quality Protein</h4>
-                  <p className="text-xs text-slate-600 dark:text-slate-400">
-                    Eggs, lentils, tofu, poultry, or fish to synthesize neurotransmitters and repair muscle tissue.
-                  </p>
+                <div className="group overflow-hidden rounded-2xl bg-blue-50/60 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/40 flex flex-col justify-between">
+                  <div className="relative h-28 w-full overflow-hidden">
+                    <img
+                      src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=400&q=80"
+                      alt="High quality clean protein bowl"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                    <span className="absolute bottom-2 left-3 text-xs font-bold text-white drop-shadow">
+                      25% Plate Proportion
+                    </span>
+                  </div>
+                  <div className="p-4 space-y-1.5">
+                    <h4 className="font-bold text-sm text-blue-800 dark:text-blue-300">25% Quality Protein</h4>
+                    <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                      Eggs, lentils, tofu, poultry, or wild fish to synthesize neurotransmitters and repair muscle tissue.
+                    </p>
+                  </div>
                 </div>
 
-                <div className="p-5 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-100 dark:border-amber-900/40 space-y-2">
-                  <span className="text-2xl">🍠</span>
-                  <h4 className="font-bold text-sm text-amber-800 dark:text-amber-300">25% Smart Carbohydrates</h4>
-                  <p className="text-xs text-slate-600 dark:text-slate-400">
-                    Sweet potatoes, oats, quinoa, brown rice, paired with avocado or olive oil for slow-burning glucose.
-                  </p>
+                <div className="group overflow-hidden rounded-2xl bg-amber-50/60 dark:bg-amber-950/30 border border-amber-100 dark:border-amber-900/40 flex flex-col justify-between">
+                  <div className="relative h-28 w-full overflow-hidden">
+                    <img
+                      src="https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=400&q=80"
+                      alt="Smart complex carbohydrates and healthy fats"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                    <span className="absolute bottom-2 left-3 text-xs font-bold text-white drop-shadow">
+                      25% Plate Proportion
+                    </span>
+                  </div>
+                  <div className="p-4 space-y-1.5">
+                    <h4 className="font-bold text-sm text-amber-800 dark:text-amber-300">25% Smart Carbohydrates</h4>
+                    <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                      Sweet potatoes, oats, quinoa, brown rice, paired with avocado or olive oil for slow-burning glucose.
+                    </p>
+                  </div>
                 </div>
               </div>
 

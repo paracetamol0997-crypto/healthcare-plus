@@ -1,67 +1,91 @@
 // AI Service for Health Companion AI
 // Enforces strict health & wellness guardrails, supports Gemini API,
-// and features an intelligent contextual fallback engine.
+// and features an intelligent contextual wellness engine.
 
 const REDIRECT_MESSAGE = "I am designed to help with mental wellness and physical health. How can I support your wellness journey today?";
 
-// Topics considered unrelated to Mental/Physical Health
+// Topics considered strictly unrelated to Mental/Physical Health
 const UNRELATED_PATTERNS = [
-  /\b(code|coding|javascript|python|typescript|react|html|css|sql|git|bug|function|compile|debugger|algorithm|api endpoint|backend|frontend|linux|windows bash|powershell|regex)\b/i,
-  /\b(politics|politician|election|president|prime minister|democrat|republican|parliament|congress|senate|campaign|geopolitics|voting|war in|treaty)\b/i,
-  /\b(crypto|bitcoin|ethereum|stock market|forex|investing|wall street|shares|dividend|trading|nasdaq)\b/i,
-  /\b(movie|cinema|hollywood|bollywood|netflix|box office|celebrity gossip|actor|actress|pop singer|album release|oscars)\b/i,
-  /\b(car repair|engine oil|mechanic|video game|fortnite|minecraft|playstation|xbox|nintendo|steam key)\b/i,
-  /\b(homework|write an essay on history|solve this math equation|who invented the airplane|capital of)\b/i
+  // Coding & Technology
+  /\b(code|coding|javascript|python|typescript|react|html|css|sql|git|bug|function|compile|debugger|algorithm|api endpoint|backend|frontend|linux|bash|powershell|regex|serverless|docker|kubernetes|aws|database query)\b/i,
+  // Politics & Government
+  /\b(politics|politician|election|president|prime minister|democrat|republican|parliament|congress|senate|campaign|geopolitics|voting|war in|treaty|government policy|bill passing)\b/i,
+  // Finance & Crypto
+  /\b(crypto|bitcoin|ethereum|stock market|forex|investing|wall street|shares|dividend|trading|nasdaq|crypto coin|dogecoin|binance|banking account|mortgage|credit score)\b/i,
+  // Entertainment & Celebrities
+  /\b(movie|cinema|hollywood|bollywood|netflix|box office|celebrity gossip|actor|actress|pop singer|album release|oscars|grammys|marvel|dc comics|batman|disney)\b/i,
+  // Gaming & Vehicles
+  /\b(car repair|engine oil|mechanic|video game|fortnite|minecraft|playstation|xbox|nintendo|steam key|gta|esports|gaming console)\b/i,
+  // Homework & Academic trivia
+  /\b(homework|write an essay on|solve this math|who invented|capital of|derivative of|integrate|history of ancient|physics problem|chemistry equation)\b/i,
+  // Unnecessary small talk & casual chit-chat with no health context
+  /\b(tell me a joke|tell a joke|make me laugh|knock knock|riddle|funny story|write a poem about dragons|write a song|write a story|write a rap|what is your favorite movie|who is your crush|will you marry me|are you single)\b/i,
+  // Random trivia questions
+  /^(who is the best (footballer|cricketer|actor|singer|player|president)|who won the|what is the price of|how to cook (biryani|pizza|burger|pasta|cake)|how to build a|how to fix my computer|where is|tell me about)\b/i
 ];
 
-// Health keywords that indicate a legitimate health query
+// Legitimate health & wellness keywords
 const HEALTH_PATTERNS = [
-  /\b(health|wellness|mental|physical|stress|anxiety|depression|sad|panic|breathe|breathing|sleep|insomnia|rest|tired|fatigue|burnout|mood|mindful|meditat|calm|peace|relax|emotion|feel|feeling|crying|lonely|overwhelm)\b/i,
-  /\b(fit|fitness|workout|exercise|walk|walking|run|running|jog|gym|stretch|stretching|yoga|weights|muscle|cardio|core|abs|squat|pushup|hiit|calories|steps)\b/i,
-  /\b(nutrition|diet|food|eat|eating|meal|water|hydration|protein|carbs|vitamins|weight|fat loss|gain weight|bmi|posture|back pain|neck pain|headache|sore|stiff|heart rate)\b/i,
-  /\b(doctor|doctor's|physician|symptom|fever|cough|cold|recovery|healing|injury|blood pressure|glucose|vital|checkup)\b/i,
-  /\b(habit|routine|morning routine|self-care|affirmation|journal|gratitude|motivation|mindset|focus)\b/i,
-  /\b(hello|hi|hey|good morning|good afternoon|good evening|who are you|help me|how can you help|thank you|thanks)\b/i
+  /\b(health|wellness|mental|physical|stress|anxiety|anxious|depress|depression|sad|panic|breathe|breathing|sleep|insomnia|rest|tired|fatigue|burnout|mood|mindful|meditat|meditation|calm|peace|relax|relaxation|emotion|feel|feeling|crying|lonely|overwhelm|grief|heartbroken|trauma)\b/i,
+  /\b(fit|fitness|workout|exercise|walk|walking|run|running|jog|jogging|gym|stretch|stretching|yoga|weights|muscle|cardio|core|abs|squat|pushup|pullup|hiit|calories|steps|stamina|endurance)\b/i,
+  /\b(nutrition|diet|food|eat|eating|meal|water|hydration|hydrate|protein|carbs|vitamins|weight|fat loss|gain weight|bmi|posture|back pain|neck pain|headache|migraine|sore|stiff|heart rate|metabolism)\b/i,
+  /\b(doctor|physician|symptom|fever|cough|cold|recovery|healing|injury|blood pressure|glucose|hypertension|vital|checkup|sprain|aches)\b/i,
+  /\b(habit|routine|morning routine|evening routine|self-care|affirmation|journal|gratitude|motivation|mindset|focus|clarity)\b/i
 ];
 
 function isHealthRelated(message) {
+  if (!message || typeof message !== 'string') return false;
   const cleanMsg = message.trim();
   if (cleanMsg.length === 0) return true;
 
-  // Check if message matches an explicitly unrelated pattern
+  const lower = cleanMsg.toLowerCase();
+
+  // 1. Check for polite short wellness check-in / greeting or bot capability question
+  if (/^(hello|hi|hey|good morning|good evening|good afternoon|greetings|help me with my health|i need health advice|thank you|thanks)[.!?]*$/i.test(cleanMsg)) {
+    return true;
+  }
+  if (/^(what can you do|how can you help|what do you do|help me|what are your features|what can i ask you)[.?]?$/i.test(cleanMsg)) {
+    return true;
+  }
+
+  // 2. Check explicitly banned non-health patterns
   for (const pattern of UNRELATED_PATTERNS) {
     if (pattern.test(cleanMsg)) {
-      // Unless they are explicitly talking about physical/mental effects, e.g. "coding gives me wrist pain"
-      const hasHealthContext = /\b(pain|stress|fatigue|eyes|hurt|ergonomic|posture|burnout|anxiety|sleep)\b/i.test(cleanMsg);
+      // Check if user is connecting it to a legitimate health problem (e.g. "coding causes neck pain")
+      const hasHealthContext = /\b(pain|stress|fatigue|eyes|hurt|ergonomic|posture|burnout|anxiety|sleep insomnia|injury|wrist|headache)\b/i.test(cleanMsg);
       if (!hasHealthContext) {
         return false;
       }
     }
   }
 
-  // If it's a short greeting or contains health keywords, it's valid
+  // 3. Check for presence of health terms
   for (const pattern of HEALTH_PATTERNS) {
     if (pattern.test(cleanMsg)) {
       return true;
     }
   }
 
-  // If question words without health context (e.g. "What is the capital of France?")
-  if (/^(what is|who is|who was|how to code|tell me about|explain the history of|write a script|generate a poem about cars)\b/i.test(cleanMsg)) {
+  // 4. If query is a general knowledge question or non-health request, block it
+  if (/^(what is|what are|who is|who are|who was|how to|where is|where are|when was|when is|why is|why are|can you tell me|can you write|can you explain|tell me about)\b/i.test(cleanMsg)) {
     return false;
   }
 
-  // By default, if ambiguous, give user benefit of the doubt if not strictly disallowed
-  return true;
+  // 5. Short random messages that lack any health intent ("cool", "nice", "ok", "test", "asdf")
+  if (cleanMsg.split(/\s+/).length < 2 && !HEALTH_PATTERNS.some(p => p.test(cleanMsg))) {
+    return false;
+  }
+
+  return false;
 }
 
 function getSystemPrompt(companionType, userProfile = {}) {
-  const userName = userProfile.name || 'Friend';
+  const userName = userProfile.name ? userProfile.name.trim() : 'Friend';
   const age = userProfile.age ? `${userProfile.age} years old` : '';
   const height = userProfile.heightCm ? `${userProfile.heightCm} cm` : '';
   const weight = userProfile.weightKg ? `${userProfile.weightKg} kg` : '';
-  const fitGoals = userProfile.fitnessGoals || 'General wellness & vitality';
-  const mentalGoals = userProfile.mentalWellnessGoals || 'Stress balance & peace of mind';
+  const fitGoals = userProfile.fitnessGoals || 'General fitness, stamina, and daily movement';
+  const mentalGoals = userProfile.mentalWellnessGoals || 'Stress balance, peaceful mindset, and restful sleep';
 
   const userContext = `
 USER PROFILE:
@@ -73,164 +97,223 @@ ${weight ? `- Weight: ${weight}` : ''}
 - Mental Wellness Goals: ${mentalGoals}
 `;
 
+  const commonGuardrail = `
+STRICT SAFETY & SCOPE GUARDRAILS:
+1. You are STRICTLY a wellness, fitness, and mental health companion.
+2. You MUST ONLY discuss physical health, workouts, exercise plans, nutrition, hydration, sleep, stress management, anxiety relief, emotional well-being, and healthy lifestyle habits.
+3. If the user asks about ANYTHING ELSE (coding, tech, politics, finance, movies, jokes, homework, celebrity gossip, gaming, or unnecessary non-health chatter), you MUST POLITELY DECLINE with EXACTLY:
+"${REDIRECT_MESSAGE}"
+4. Do NOT answer off-topic questions under any circumstances.
+5. Provide high quality, empathetic, and beautifully structured responses with bullet points, practical actionable steps, and encouraging warmth.
+6. Clearly state when appropriate that you are an AI wellness companion and encourage professional medical consultation for serious health conditions or emergencies.`;
+
   if (companionType === 'mind') {
-    return `You are "Mind Companion AI", a compassionate, warm, and supportive mental health and emotional wellness mentor within the Health Companion AI platform.
+    return `You are "Mind Companion AI", a warm, empathetic, and evidence-informed mental health and emotional well-being mentor.
 ${userContext}
-YOUR MISSION:
-- Provide empathetic listening, stress reduction advice, anxiety coping methods, guided breathing prompts, sleep hygiene tips, positive habit formation, and emotional validation.
-- Speak in a calm, soothing, encouraging, and clear voice.
-- Keep language simple, gentle, and accessible. Break up long advice into easy steps or bullet points.
-- ALWAYS emphasize that you are an AI wellness companion, not a replacement for licensed medical or psychological professionals. If a user exhibits signs of acute crisis or self-harm, gently encourage them to contact professional emergency services immediately.
-- STRICT RULE: ONLY answer mental and physical health topics. Do NOT discuss politics, programming, finance, or entertainment.`;
+${commonGuardrail}
+SPECIALTY INSTRUCTIONS:
+- Offer compassionate listening, emotional validation, cognitive grounding (e.g. 5-4-3-2-1), guided breathing protocols, and sleep hygiene practices.
+- Use a calm, reassuring, and gentle voice. Break explanations into digestible, bite-sized steps.`;
   }
 
   if (companionType === 'fit') {
-    return `You are "Fit Companion AI", an energetic, encouraging, and knowledgeable physical fitness trainer and nutrition guide within the Health Companion AI platform.
+    return `You are "Fit Companion AI", an energetic, encouraging, and knowledgeable physical fitness coach and nutrition guide.
 ${userContext}
-YOUR MISSION:
-- Provide customized workout plans (walking, running, bodyweight, gym, yoga, stretching), form tips, step tracking encouragement, hydration advice, and balanced nutrition tips.
-- Use an enthusiastic, positive, supportive, and motivating tone.
-- Give actionable, realistic advice tailored to the user's fitness goals (${fitGoals}).
-- Emphasize safe progressions, proper warm-ups, cool-downs, and listening to one's body.
-- STRICT RULE: ONLY answer physical and mental health topics. Do NOT discuss coding, politics, finance, or entertainment.`;
+${commonGuardrail}
+SPECIALTY INSTRUCTIONS:
+- Deliver customized workout plans, daily step encouragement, posture correction, injury prevention tips, hydration targets, and clean plate nutrition frameworks.
+- Use an enthusiastic, supportive, and motivating tone. Focus on realistic progress.`;
   }
 
-  // Unified "health" companion
-  return `You are "Health Companion AI", a trusted, comprehensive personal wellness companion combining the care of a family doctor, the encouragement of a fitness trainer, and the empathy of a mental health mentor.
+  return `You are "Health Companion AI", a trusted, comprehensive personal health sanctuary combining the care of a family doctor, the mindfulness of a wellness mentor, and the encouragement of a fitness trainer.
 ${userContext}
-YOUR MISSION:
-- Help ${userName} thrive across both mental well-being and physical fitness.
-- Balance emotional comfort with practical physical health advice.
-- Be friendly, warm, supportive, and clear.
-- STRICT RULE: ONLY answer mental and physical health topics. If asked about unrelated subjects (coding, politics, entertainment, trivia), reply with:
-"${REDIRECT_MESSAGE}"`;
+${commonGuardrail}`;
 }
 
-// Fallback response generator when Gemini API key is not present or offline
+// Fallback response generator when Gemini API key is absent or offline
 function generateLocalResponse(companionType, message, userProfile = {}) {
-  const userName = userProfile.name || 'Friend';
-  const lower = message.toLowerCase();
+  const userName = userProfile.name ? userProfile.name.trim() : 'Friend';
+  const lower = (message || '').toLowerCase();
 
   // Guardrail check
   if (!isHealthRelated(message)) {
     return REDIRECT_MESSAGE;
   }
 
+  // Capability questions
+  if (/^(what can you do|how can you help|what do you do|help me|what are your features|what can i ask you)/i.test(lower)) {
+    return `I am your **Health Companion AI**, dedicated exclusively to your mental and physical wellness, ${userName}! 🌿💪
+
+Here is how I can support you:
+1. **Mental Wellness (Mind Companion):**
+   - Stress and anxiety reduction techniques (4-4-4-4 Box Breathing, 5-4-3-2-1 Grounding)
+   - Sleep hygiene protocols and evening relaxation routines
+   - Emotional validation, mindfulness, and gratitude journaling
+2. **Physical Health (Fit Companion):**
+   - Tailored workout programs and bodyweight foundation routines
+   - Daily step motivation, distance pacing, and movement snacks
+   - Clean Plate nutrition frameworks and hydration targets
+   - Desk posture resets and mobility stretches
+
+How would you like to begin your wellness journey today?`;
+  }
+
   // Greeting
-  if (/^(hi|hello|hey|good morning|good evening|good afternoon)/i.test(lower)) {
+  if (/^(hi|hello|hey|good morning|good evening|good afternoon|greetings)/i.test(lower)) {
     if (companionType === 'mind') {
-      return `Hello ${userName}! 🌿 I'm your Mind Companion AI. I'm here to listen, help you navigate stress, practice mindfulness, or guide you through a calming exercise. How is your heart and mind feeling today?`;
+      return `Hello ${userName}! 🌿 I'm your Mind Companion AI. I'm here to support your mental well-being, guide calming breathing exercises, and listen without judgment whenever you need space to reflect.
+
+How is your emotional landscape feeling today? You can share what's on your mind, or we can do a quick 2-minute stress release together.`;
     } else if (companionType === 'fit') {
-      return `Hey ${userName}! 💪 I'm your Fit Companion AI. Ready to energize your body today? Whether you're looking for a quick stretch, a workout routine, or nutrition advice, what's our goal right now?`;
+      return `Hey ${userName}! 💪 I'm your Fit Companion AI. Ready to energize your body today?
+
+Whether you're looking for a beginner workout plan, want to hit your daily steps, or need healthy nutrition ideas, what fitness goal are we tackling right now?`;
     } else {
-      return `Welcome ${userName}! 🌟 I'm your Health Companion AI. How can I support your physical vitality and peace of mind today?`;
+      return `Welcome ${userName}! 🌟 I'm your Health Companion AI, combining the care of a family doctor, fitness trainer, and wellness mentor.
+
+How can I support your physical vitality and peace of mind today?`;
     }
   }
 
-  // Stress / Anxiety
-  if (lower.includes('stress') || lower.includes('anxious') || lower.includes('overwhelm') || lower.includes('panic') || lower.includes('nervous')) {
-    return `I hear you, ${userName}, and I'm really glad you reached out. Feeling stressed or overwhelmed is completely valid, especially with everything you juggle.
+  // Stress / Anxiety / Overwhelm / Panic
+  if (lower.includes('stress') || lower.includes('anxious') || lower.includes('anxiety') || lower.includes('overwhelm') || lower.includes('panic') || lower.includes('nervous') || lower.includes('burnout')) {
+    return `I hear you, ${userName}, and I'm really glad you reached out. Feeling stressed or overwhelmed is completely valid, and you don't have to carry it all at once.
 
-Here is a quick 3-step calm down technique you can try right now:
-1. **The 4-4-4-4 Box Breath**: Inhale gently through your nose for 4 counts, hold for 4 counts, release slowly through your mouth for 4 counts, and rest for 4 counts. Doing just 3 rounds sends an immediate relaxation signal to your vagus nerve.
-2. **5-4-3-2-1 Sensory Grounding**: Name 5 things you can see around you, 4 things you can physically touch, 3 sounds you can hear, 2 scents, and 1 positive thought about yourself.
-3. **Release physical tension**: Gently drop your shoulders away from your ears, unclench your jaw, and let your belly relax.
+Here is an immediate **3-Step Nervous System Reset** you can do right now:
 
-Would you like to try a guided breathing session, or would it feel better to talk through what is causing this stress? Remember, take it one breath at a time.`;
+1. **The 4-4-4-4 Box Breath:**
+   - Inhale gently through your nose for 4 counts.
+   - Hold gently with relaxed shoulders for 4 counts.
+   - Exhale smoothly through your mouth for 4 counts.
+   - Rest in stillness for 4 counts.
+   *(Doing just 3 cycles signals your vagus nerve to reduce cortisol immediately).*
+
+2. **5-4-3-2-1 Sensory Grounding:**
+   - Name **5** things you can see around you.
+   - Touch **4** different textures (your clothes, desk, a pen).
+   - Listen for **3** distinct sounds in the room.
+   - Notice **2** scents.
+   - State **1** kind truth about yourself.
+
+3. **Physical De-tensioning:**
+   - Unclench your jaw, drop your shoulders away from your ears, and soften your stomach.
+
+Would you like to try our visual breathing sphere in the Mind Companion tab, or talk through what is causing this stress? Take it one breath at a time.`;
   }
 
-  // Sleep / Insomnia
-  if (lower.includes('sleep') || lower.includes('insomnia') || lower.includes('tired') || lower.includes('night') || lower.includes('wake up')) {
-    return `Restful sleep is one of the most vital pillars of both mental clarity and physical recovery, ${userName}. 🌙
+  // Sleep / Insomnia / Night Routine
+  if (lower.includes('sleep') || lower.includes('insomnia') || lower.includes('tired') || lower.includes('night') || lower.includes('wake up') || lower.includes('bedtime')) {
+    return `Restful sleep is the foundation of cognitive clarity, emotional resilience, and cellular repair, ${userName}. 🌙
 
-Here are proven habits to improve your sleep quality tonight:
-- **Digital Sunset**: Power down bright screens 45–60 minutes before bed. Blue light suppresses melatonin, your body's natural sleep hormone.
-- **Cool & Dark Environment**: Aim for a bedroom temperature around 18–20°C (65–68°F). A slight drop in core body temperature triggers sleepiness.
-- **The Brain Dump**: If your thoughts are spinning, write them down in our Journal tab before getting into bed. Once they are on paper, your brain feels permitted to let go.
-- **Gentle 4-7-8 Breathing**: Inhale for 4 seconds, hold for 7 seconds, exhale smoothly for 8 seconds. This slows your heart rate.
+Here is an evidence-based **Restorative Sleep Protocol** for tonight:
 
-How many hours of sleep did you get last night? We can adjust your evening routine together!`;
+- **The 45-Minute Digital Sunset:** Turn off bright blue screens 45 minutes before bed. Blue light halts melatonin synthesis.
+- **Cool Temperature:** Keep your bedroom at approximately 18–20°C (65–68°F). A drop in core body temperature is what signals deep REM sleep.
+- **Mental Brain Dump:** Write down any unfinished worries or tomorrow's to-dos in our Journal tab before bed. Once written down, your brain permits itself to let go.
+- **The 4-7-8 Breathing Technique:** Inhale through your nose for 4 seconds, hold for 7 seconds, and exhale with a gentle whoosh for 8 seconds.
+
+How many hours did you rest last night? We can tailor an evening wind-down routine that fits your schedule!`;
   }
 
-  // Workout / Gym / Beginner exercise
-  if (lower.includes('gym') || lower.includes('workout') || lower.includes('exercise') || lower.includes('beginner') || lower.includes('routine')) {
-    return `I love your enthusiasm, ${userName}! Building consistent physical activity is the ultimate investment in your long-term health and mood. 💪
+  // Workouts / Gym / Strength / Beginner routine
+  if (lower.includes('gym') || lower.includes('workout') || lower.includes('exercise') || lower.includes('beginner') || lower.includes('routine') || lower.includes('muscle') || lower.includes('strength')) {
+    return `Building consistent physical activity is the single best investment in your long-term energy and metabolic health, ${userName}! 💪
 
-Here is a balanced **Full-Body Beginner Routine** you can do anywhere:
+Here is a balanced **Full-Body Foundation Routine** designed for steady strength and joint safety:
 
 **1. Warm-Up (3–5 minutes):**
-- Arm circles and shoulder rolls: 30 seconds
-- Cat-Cow spine mobility: 10 repetitions
-- Gentle bodyweight squats: 12 repetitions
+- Arm circles & shoulder rolls: 30 seconds
+- Cat-Cow spinal mobility: 10 slow reps
+- Bodyweight hip openers & air squats: 10 reps
 
-**2. Main Movement (2 to 3 sets):**
-- **Chair or Bodyweight Squats**: 10–12 reps (strengthens quads, glutes, core)
-- **Incline Push-ups (against a wall or sturdy table)**: 8–10 reps (chest and triceps)
-- **Glute Bridges**: 12 reps (hips and lower back stability)
-- **Plank Hold**: 20–30 seconds (deep core support)
+**2. Main Movement Circuit (2 to 3 sets):**
+- **Chair or Bodyweight Squats:** 10–12 reps *(strengthens quads, glutes, and core)*
+- **Incline Push-ups (against a wall, bench, or floor):** 8–10 reps *(chest, triceps, and shoulders)*
+- **Glute Bridges:** 12 reps *(activates posterior chain and protects lower back)*
+- **Plank Hold:** 20–30 seconds *(deep core stability and spinal alignment)*
 
 **3. Cool-Down & Stretch (3 minutes):**
-- Hamstring stretch: 30 seconds each side
-- Chest-opening doorway stretch: 30 seconds
+- Hamstring stretch: 30 seconds each leg
+- Doorway chest opener: 30 seconds
 - Child's pose with deep belly breathing.
 
-Remember to sip water throughout. Would you like to log this in your Workout Tracker, or would you like to focus on cardio or home yoga today?`;
+Remember to sip water throughout. You can log this session in your **Workout Tracker** on the Physical Health page to record your active minutes!`;
   }
 
   // Walking / Steps / 10k steps
-  if (lower.includes('step') || lower.includes('walk') || lower.includes('walking') || lower.includes('10000') || lower.includes('10,000')) {
-    return `Walking is truly one of the most underrated forms of medicine for both body and mind, ${userName}! 🚶‍♂️
+  if (lower.includes('step') || lower.includes('walk') || lower.includes('walking') || lower.includes('10000') || lower.includes('10,000') || lower.includes('run') || lower.includes('running')) {
+    return `Daily walking is one of the most effective, accessible forms of preventative health for both body and mind, ${userName}! 🚶‍♂️
 
-- **Cardiovascular Health**: Brisk walking strengthens your heart, improves insulin sensitivity, and lowers resting blood pressure.
-- **Mental Clarity**: A 20-minute walk outside reduces cortisol (the stress hormone) and triggers endorphins that boost cognitive focus.
-- **Habit Tip**: You don't have to get all your steps at once! Try three 10-minute walks—one after breakfast, one after lunch, and one after dinner. Walking after meals significantly blunts blood sugar spikes.
+- **Cardiovascular Health:** Brisk walking increases VO2 max, enhances capillary density, and gently lowers resting blood pressure.
+- **Blood Sugar Regulation:** Taking a 10-minute walk after lunch or dinner blunts postprandial glucose spikes by up to 30%.
+- **Mental Stress Relief:** Walking in natural light triggers dopamine and releases serotonin, clearing mental fog.
+- **Easy Habit Stack:** Break 10,000 steps into three small chunks—a 15-minute morning walk, a 15-minute midday stroll, and an evening cooldown.
 
-Check your dashboard to see your steps progress today! Have you reached your daily goal yet?`;
+Check your **Daily Steps** progress on your dashboard right now to see how close you are to today's target!`;
   }
 
   // Water / Hydration
   if (lower.includes('water') || lower.includes('hydrat') || lower.includes('drink') || lower.includes('thirst')) {
-    return `Staying properly hydrated is essential for mental energy, joint lubrication, glowing skin, and healthy digestion, ${userName}! 💧
+    return `Hydration is essential for cognitive alertness, joint lubrication, waste elimination, and vibrant energy, ${userName}! 💧
 
 **Daily Hydration Guidelines:**
-- Aim for roughly **2.5 to 3 liters** (approx. 8–10 glasses) of water daily.
-- If you exercise or sweat heavily, add an extra 350–500ml or a pinch of electrolytes.
-- Keep a reusable bottle on your desk where you can easily see it.
-- Start your morning with a large glass of room-temperature water before coffee to kickstart your metabolism.
+- **Baseline Target:** Aim for approximately **2.5 to 3 liters** (roughly 8 to 10 glasses) of pure water daily.
+- **Morning Kickstart:** Drink a full 500ml glass of room-temperature water upon waking before caffeine to rehydrate organs after sleep.
+- **Exercise Compensation:** Add 250–500ml of water plus a pinch of electrolytes for every 30 minutes of vigorous sweat.
+- **Track It:** Keep a glass or reusable bottle within arm's reach.
 
-You can click on the glasses in the **Water Tracker** module on your Physical Health page to record your intake!`;
+You can record your glasses in real-time using the interactive **Water Tracker** on your Physical Health page!`;
   }
 
-  // Nutrition / Food / Diet
-  if (lower.includes('nutrition') || lower.includes('diet') || lower.includes('food') || lower.includes('protein') || lower.includes('meal') || lower.includes('eat')) {
-    return `Nutritious eating is about nourishing your cells and fueling your energy, not restrictive deprivation, ${userName}. 🥗
+  // Nutrition / Food / Diet / Weight Loss
+  if (lower.includes('nutrition') || lower.includes('diet') || lower.includes('food') || lower.includes('protein') || lower.includes('meal') || lower.includes('eat') || lower.includes('weight loss') || lower.includes('fat loss') || lower.includes('calorie')) {
+    return `Nutritious eating is about nourishing your cells and honoring your energy, not restrictive deprivation, ${userName}. 🥗
 
-Here is the **Golden Plate Formula** for balanced energy and satiety:
-1. **1/2 of your plate**: Colorful vegetables and leafy greens (fiber, micronutrients, antioxidants).
-2. **1/4 of your plate**: High-quality protein (chicken breast, eggs, tofu, lentils, fish, or Greek yogurt). Protein sustains muscle repair and stabilizes satiety hormones.
-3. **1/4 of your plate**: Complex carbohydrates (brown rice, oats, quinoa, sweet potatoes).
-4. **1-2 thumb-sizes**: Healthy fats (extra virgin olive oil, avocado, chia seeds, or nuts) for brain health.
+Here is the **Clean Plate Framework** for sustained metabolic energy and satiety:
 
-Are you looking for meal prep ideas for breakfast, lunch, or a healthy post-workout snack?`;
+1. **50% Colorful Greens & Vegetables:**
+   - Spinach, broccoli, peppers, cucumbers, and carrots for fiber, micronutrients, and gut microbiome diversity.
+2. **25% High-Quality Protein:**
+   - Eggs, chicken breast, tofu, lentils, Greek yogurt, or wild fish to repair muscle fibers and regulate hunger hormones (leptin and ghrelin).
+3. **25% Smart Complex Carbohydrates:**
+   - Quinoa, brown rice, sweet potatoes, or rolled oats for steady, slow-releasing glucose.
+4. **1–2 Thumb-Sizes of Healthy Fats:**
+   - Extra virgin olive oil, avocado, walnuts, or chia seeds for hormone balance and brain health.
+
+Are you looking for meal prep ideas for breakfast, clean lunch options, or a wholesome post-workout snack?`;
   }
 
-  // General Wellness Advice
+  // Posture / Desk work / Pain / Ergonomics
+  if (lower.includes('posture') || lower.includes('desk') || lower.includes('back pain') || lower.includes('neck pain') || lower.includes('sitting') || lower.includes('wrist') || lower.includes('shoulder')) {
+    return `Sedentary desk work places immense continuous strain on the cervical and lumbar spine, ${userName}. 🧘
+
+Here is a quick **2-Minute Desk Reset** you can do right in your chair:
+
+1. **Chin Tucks:** Gently slide your chin straight back as if making a double chin. Hold for 5 seconds; repeat 8 times to reset forward-head posture.
+2. **Doorway / Corner Pec Stretch:** Stand in an open doorway, rest forearms on the frame, and step forward gently until you feel a comfortable chest opening. Hold for 30 seconds.
+3. **Seated Spinal Twist:** Sit upright, place your right hand on your left knee, inhale tall, and exhale gently twisting to the left for 3 deep breaths. Repeat on the right side.
+4. **Ergonomic Tip:** Ensure the top third of your monitor is aligned with eye level and your feet rest flat on the floor.
+
+You can find the full guided routine under **Guided Exercise Plans** in the Physical Health section!`;
+  }
+
+  // General Wellness Query
   if (companionType === 'fit') {
-    return `Great question, ${userName}! In physical training, consistency beats intensity every single time. Small, repeatable habits like 8,000+ daily steps, drinking adequate water, and 20 minutes of targeted resistance work create lasting vitality.
+    return `That's a wonderful health question, ${userName}! In physical training, consistency always outperforms intensity. Small daily habits—like hitting 8,000+ steps, drinking adequate water, and doing 20 minutes of functional movement—create compounding vitality over months and years.
 
-How does your body feel right now—any tight muscles, joint stiffness, or energy dips we should address with a targeted stretch or mobility routine?`;
+What specific physical area would you like to focus on right now: workout routines, nutrition planning, or recovery stretching?`;
   } else {
-    return `Thank you for sharing that with me, ${userName}. Taking time to check in with yourself is a wonderful act of self-care. 
+    return `Thank you for checking in with me, ${userName}. Honoring your mental and physical health is a wonderful act of daily self-care.
 
-Remember to honor where you are today. You don't have to have everything figured out; taking one intentional breath, drinking a warm glass of water, or stretching for two minutes can gently reset your nervous system.
+Take a slow, intentional breath right now. Drop your shoulders, relax your jaw, and give yourself credit for showing up today.
 
-What is one kind thing you can do for yourself today?`;
+How can I best support your wellness journey in this moment?`;
   }
 }
 
 // Call Google Gemini API if key is present, otherwise fallback to local response
 async function generateAiResponse(companionType, message, userProfile = {}, chatHistory = [], apiKey = null) {
-  // Step 1: Guardrail check
+  // Step 1: Strict Guardrail check
   if (!isHealthRelated(message)) {
     return {
       content: REDIRECT_MESSAGE,
@@ -242,7 +325,7 @@ async function generateAiResponse(companionType, message, userProfile = {}, chat
   const effectiveKey = apiKey || process.env.GEMINI_API_KEY;
 
   if (!effectiveKey) {
-    // Return high quality contextual local response
+    // Deliver high quality contextual local response
     const localContent = generateLocalResponse(companionType, message, userProfile);
     return {
       content: localContent,
@@ -258,7 +341,7 @@ async function generateAiResponse(companionType, message, userProfile = {}, chat
     const contents = [];
     
     // Add past history if available (limit to last 6 messages for token efficiency)
-    const recentHistory = chatHistory.slice(-6);
+    const recentHistory = (chatHistory || []).slice(-6);
     for (const h of recentHistory) {
       contents.push({
         role: h.role === 'assistant' ? 'model' : 'user',
@@ -283,28 +366,27 @@ async function generateAiResponse(companionType, message, userProfile = {}, chat
         },
         contents: contents,
         generationConfig: {
-          temperature: 0.7,
-          maxOutputTokens: 800,
-          topP: 0.95
+          temperature: 0.6,
+          maxOutputTokens: 900,
+          topP: 0.9
         }
       })
     });
 
     if (!response.ok) {
-      const errText = await response.text();
-      console.warn("Gemini API call returned non-200:", response.status, errText);
+      console.warn("Gemini API call returned non-200 status:", response.status);
       const fallback = generateLocalResponse(companionType, message, userProfile);
       return {
         content: fallback,
         guardrailTriggered: false,
-        source: 'local-fallback-after-api-error'
+        source: 'local-fallback'
       };
     }
 
     const data = await response.json();
     const candidateText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
 
-    if (candidateText) {
+    if (candidateText && candidateText.trim()) {
       return {
         content: candidateText.trim(),
         guardrailTriggered: false,

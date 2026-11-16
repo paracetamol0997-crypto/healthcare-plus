@@ -20,7 +20,7 @@ import { api } from '../services/api';
 export const ProfilePage: React.FC = () => {
   const { user, updateProfile } = useAuth();
 
-  const [name, setName] = useState(user?.name || 'Pavan');
+  const [name, setName] = useState(user?.name || '');
   const [age, setAge] = useState(user?.age ? String(user.age) : '28');
   const [gender, setGender] = useState(user?.gender || 'Male');
   const [heightCm, setHeightCm] = useState(user?.heightCm ? String(user.heightCm) : '175');

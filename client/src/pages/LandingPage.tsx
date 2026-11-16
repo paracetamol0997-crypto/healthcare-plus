@@ -17,25 +17,14 @@ import {
   Flame,
   Moon,
   ChevronRight,
-  PhoneCall,
-  UserCheck
+  PhoneCall
 } from 'lucide-react';
 import { ChatInterface } from '../components/ChatInterface';
 import { BreathingExercise } from '../components/BreathingExercise';
 
 export const LandingPage: React.FC = () => {
-  const { user, demoLogin } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
-  const [showDemoModal, setShowDemoModal] = useState<boolean>(false);
-
-  const handleDemo = async () => {
-    try {
-      await demoLogin();
-      navigate('/dashboard');
-    } catch (e) {
-      console.error(e);
-    }
-  };
 
   const FEATURES = [
     {
@@ -72,10 +61,10 @@ export const LandingPage: React.FC = () => {
       quote: "What impresses me most about Health Companion AI is its unwavering focus on holistic lifestyle medicine—calming the nervous system while encouraging daily movement."
     },
     {
-      name: 'Pavan Kumar',
-      role: 'Software Engineer & Daily User',
-      avatar: '👨‍💻',
-      quote: "As someone who sits at a desk for 9 hours, having both Fit Companion reminding me of steps and Mind Companion guiding my breathing breaks has transformed my daily energy."
+      name: 'Marcus Vance',
+      role: 'Product Designer & Runner',
+      avatar: '🏃‍♂️',
+      quote: "As someone who sits at a desk for long hours, having Fit Companion reminding me of mobility breaks and Mind Companion guiding my breathing sessions has transformed my daily energy."
     },
     {
       name: 'Maya Henderson',
@@ -139,13 +128,12 @@ export const LandingPage: React.FC = () => {
                     <ArrowRight className="w-4 h-4" />
                   </Link>
 
-                  <button
-                    onClick={handleDemo}
+                  <Link
+                    to="/login"
                     className="w-full sm:w-auto px-7 py-3.5 rounded-2xl bg-white dark:bg-slate-800 text-slate-800 dark:text-white font-bold text-sm border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/60 shadow-sm transition-all flex items-center justify-center gap-2"
                   >
-                    <UserCheck className="w-4 h-4 text-emerald-500" />
-                    <span>Try as Pavan (Demo)</span>
-                  </button>
+                    <span>Sign In to Account</span>
+                  </Link>
                 </>
               )}
             </div>
@@ -437,12 +425,12 @@ export const LandingPage: React.FC = () => {
             >
               Create Free Account
             </Link>
-            <button
-              onClick={handleDemo}
-              className="w-full sm:w-auto px-7 py-3.5 rounded-2xl bg-emerald-800/80 text-white font-bold text-sm border border-emerald-400/40 hover:bg-emerald-800 transition-all"
+            <Link
+              to="/login"
+              className="w-full sm:w-auto px-7 py-3.5 rounded-2xl bg-emerald-800/80 text-white font-bold text-sm border border-emerald-400/40 hover:bg-emerald-800 transition-all flex items-center justify-center"
             >
-              Sign In as Demo User
-            </button>
+              Sign In to Your Sanctuary
+            </Link>
           </div>
         </div>
       </section>

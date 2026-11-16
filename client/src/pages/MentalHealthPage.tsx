@@ -32,6 +32,54 @@ const JOURNAL_PROMPTS = [
   "What would you tell a dear friend who feels the way you do right now?"
 ];
 
+const MIND_ACTIVITIES = [
+  {
+    id: 'breathing',
+    title: 'Guided Breath Sanctuary',
+    subtitle: 'Vagus Nerve Reset',
+    desc: '3 scientific breathing patterns (Box, 4-7-8, Coherent) with expanding visual pacing sphere.',
+    image: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=600&q=80',
+    badge: 'Stress Relief',
+    buttonText: 'Breathe Now'
+  },
+  {
+    id: 'journal',
+    title: 'Mindful Gratitude Journal',
+    subtitle: 'Emotional Clarity',
+    desc: 'Release racing worries, celebrate daily mini-victories, and cultivate mindful appreciation.',
+    image: 'https://images.unsplash.com/photo-1517842645767-c639042777db?auto=format&fit=crop&w=600&q=80',
+    badge: 'Daily Prompts',
+    buttonText: 'Open Journal'
+  },
+  {
+    id: 'soundscapes',
+    title: 'Ambient Soundscapes',
+    subtitle: 'Alpha Brain Waves',
+    desc: 'Theta meditation drone, forest rainfall, coastal ocean waves, and soothing brown noise.',
+    image: 'https://images.unsplash.com/photo-1518495973542-4542c06a5843?auto=format&fit=crop&w=600&q=80',
+    badge: 'Sound Healing',
+    buttonText: 'Play Audio'
+  },
+  {
+    id: 'moods',
+    title: 'Mood Balance Journey',
+    subtitle: 'Self-Compassion',
+    desc: 'Notice emotional patterns over time without self-judgment and nurture steady balance.',
+    image: 'https://images.unsplash.com/photo-1499209974431-9dddcece7f88?auto=format&fit=crop&w=600&q=80',
+    badge: 'Check-In',
+    buttonText: 'View History'
+  },
+  {
+    id: 'chat',
+    title: 'Mind Companion AI',
+    subtitle: '24/7 Empathetic Guide',
+    desc: 'A safe, confidential AI mentor dedicated solely to mental health, anxiety, and calmness.',
+    image: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=600&q=80',
+    badge: 'Private & Safe',
+    buttonText: 'Start Chat'
+  }
+];
+
 export const MentalHealthPage: React.FC = () => {
   const [moods, setMoods] = useState<MoodLog[]>([]);
   const [journals, setJournals] = useState<JournalEntry[]>([]);
@@ -173,8 +221,73 @@ export const MentalHealthPage: React.FC = () => {
       </section>
 
       {/* Main Content Area */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 space-y-8">
         
+        {/* Mind Activities Visual Showcase Grid */}
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-xl font-extrabold text-slate-900 dark:text-white">
+                Mind Sanctuary Activities
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Choose an immersive mindfulness experience to nourish your emotional equilibrium
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            {MIND_ACTIVITIES.map((act) => {
+              const isCurrent = activeTab === act.id;
+              return (
+                <div
+                  key={act.id}
+                  onClick={() => setActiveTab(act.id as any)}
+                  className={`group cursor-pointer overflow-hidden rounded-3xl bg-white dark:bg-wellness-darkCard border transition-all duration-300 hover:shadow-xl hover:-translate-y-1 flex flex-col justify-between ${
+                    isCurrent
+                      ? 'border-emerald-500 ring-2 ring-emerald-500/30 shadow-md'
+                      : 'border-slate-200 dark:border-slate-800 hover:border-slate-300'
+                  }`}
+                >
+                  <div className="relative h-28 w-full overflow-hidden">
+                    <img
+                      src={act.image}
+                      alt={act.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent" />
+                    <span className="absolute top-2 right-2 text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-emerald-500/90 text-white shadow-sm backdrop-blur-sm">
+                      {act.badge}
+                    </span>
+                    <span className="absolute bottom-2 left-3 right-3 text-xs font-bold text-white drop-shadow truncate">
+                      {act.title}
+                    </span>
+                  </div>
+
+                  <div className="p-3.5 flex-1 flex flex-col justify-between space-y-2">
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 block mb-0.5">
+                        {act.subtitle}
+                      </span>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
+                        {act.desc}
+                      </p>
+                    </div>
+
+                    <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                      <span className={`text-[11px] font-bold ${isCurrent ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 group-hover:text-emerald-600'} transition-colors`}>
+                        {isCurrent ? '● Active Now' : act.buttonText}
+                      </span>
+                      <span className="text-xs text-slate-400 group-hover:translate-x-1 transition-transform">&rarr;</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
         {/* TAB 1: GUIDED BREATHING */}
         {activeTab === 'breathing' && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

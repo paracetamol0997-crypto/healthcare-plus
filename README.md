@@ -24,7 +24,7 @@ Inspired by platforms like **Headspace**, **Calm**, and **Fitbit**, the user exp
 ## 🧠 Core Sections & Capabilities
 
 ### 1. Landing Page
-- **Hero Section:** Tagline, wellness visual cards (Meditation, Fitness, Nutrition), and quick action buttons (**Get Started**, **Try as Pavan Demo**, **Sign In**).
+- **Hero Section:** Tagline, wellness visual cards (Meditation, Fitness, Nutrition), and quick action buttons (**Get Started**, **Sign In**).
 - **About the Platform:** Explains the mind-body connection and holistic approach.
 - **Feature Showcase:** Deep dive into Mind Companion and Fit Companion.
 - **Live Interactive AI Preview:** Chat with the companion directly from the homepage.
@@ -33,13 +33,13 @@ Inspired by platforms like **Headspace**, **Calm**, and **Fitbit**, the user exp
 
 ### 2. Authentication & Profile System
 - **Login, Register, and Forgot Password:**
-  - **1-Click Demo Login (`Pavan`):** Allows immediate exploration without typing.
+  - **Quick User Registration:** Effortless account creation with validated credentials.
   - **Two-Step Onboarding:** Collects vital metrics (Age, Gender, Height, Weight, Fitness Goals, Mental Wellness Goals).
   - **Live BMI Calculator:** Automatically computes Body Mass Index and provides personalized lifestyle advice.
   - **Custom AI Engine Settings:** Option to input a personal Google Gemini API key or use the built-in offline wellness engine.
 
 ### 3. Personalized Dashboard
-- **Dynamic Time-Aware Greeting:** *"Good Morning / Afternoon / Evening, Pavan! How are you feeling today?"*
+- **Dynamic Time-Aware Greeting:** *"Good Morning / Afternoon / Evening, [Your Name]! How are you feeling today?"*
 - **🔥 7-Day Wellness Streak** & Today's Date.
 - **Mood Status:** One-click emotion check-in and current status badge.
 - **Daily Activity Summary:**
@@ -133,11 +133,12 @@ Open your browser at **`http://localhost:5173`**.
 
 ---
 
-## 🔑 Demo Account Credentials
+## 🔐 User Authentication
 
-For instant testing, click **"Try as Pavan"** on the landing page or login screen:
-- **Email:** `pavan@healthcompanion.ai`
-- **Password:** `wellness123`
+Create your personal account by clicking **"Register"** or **"Get Started Free"**:
+- Supply your name, email, and password (min 6 characters)
+- Complete the personalized health onboarding (age, height, weight, physical & mental goals)
+- Log in anytime with your credentials to access your persistent data, journals, and history
 
 ---
 

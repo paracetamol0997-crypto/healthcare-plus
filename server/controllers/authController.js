@@ -6,6 +6,7 @@ const { JWT_SECRET } = require('../middleware/authMiddleware');
 function calculateBmi(weightKg, heightCm) {
   if (!weightKg || !heightCm) return null;
   const heightM = heightCm / 100;
+  if (heightM <= 0) return null;
   const bmi = Number((weightKg / (heightM * heightM)).toFixed(1));
   let category = 'Normal weight';
   let advice = 'You have a balanced body mass ratio. Focus on maintaining muscle tone and cardiovascular health.';
@@ -31,30 +32,36 @@ const authController = {
         return res.status(400).json({ message: 'Name, email, and password are required' });
       }
 
+      const cleanEmail = email.trim().toLowerCase();
+      const cleanName = name.trim();
+
+      if (cleanName.length < 2) {
+        return res.status(400).json({ message: 'Name must be at least 2 characters long' });
+      }
+
       if (password.length < 6) {
         return res.status(400).json({ message: 'Password must be at least 6 characters long' });
       }
 
-      const existingUser = await db.getUserByEmail(email);
+      const existingUser = await db.getUserByEmail(cleanEmail);
       if (existingUser) {
-        return res.status(400).json({ message: 'An account with this email already exists' });
+        return res.status(400).json({ message: 'An account with this email already exists. Please sign in.' });
       }
 
       const passwordHash = await bcrypt.hash(password, 10);
       const newUser = await db.createUser({
-        name,
-        email,
+        name: cleanName,
+        email: cleanEmail,
         passwordHash,
         age: age ? Number(age) : null,
         gender: gender || '',
         heightCm: heightCm ? Number(heightCm) : null,
         weightKg: weightKg ? Number(weightKg) : null,
-        fitnessGoals: fitnessGoals || 'Maintain daily activity and energy',
+        fitnessGoals: fitnessGoals || 'Maintain daily activity and balanced energy',
         mentalWellnessGoals: mentalWellnessGoals || 'Practice mindful breathing and reduce stress'
       });
 
-      const token = jwt.sign({ userId: newUser.id, email: newUser.email }, JWT_SECRET, { expiresIn: '7d' });
-
+      const token = jwt.sign({ userId: newUser.id, email: newUser.email }, JWT_SECRET, { expiresIn: '14d' });
       const bmiInfo = calculateBmi(newUser.weightKg, newUser.heightCm);
 
       res.status(201).json({
@@ -87,29 +94,28 @@ const authController = {
         return res.status(400).json({ message: 'Email and password are required' });
       }
 
-      const user = await db.getUserByEmail(email);
+      const cleanEmail = email.trim().toLowerCase();
+      const user = await db.getUserByEmail(cleanEmail);
       if (!user) {
         return res.status(401).json({ message: 'Invalid email or password' });
       }
 
-      // Check password (also support demo password fallback)
+      const storedHash = user.passwordHash || user.password_hash;
       let isMatch = false;
-      if (user.passwordHash.startsWith('$2a$') || user.passwordHash.startsWith('$2b$')) {
-        isMatch = await bcrypt.compare(password, user.passwordHash);
-      } else {
-        isMatch = user.passwordHash === password;
-      }
 
-      // For demo user "wellness123"
-      if (!isMatch && (password === 'wellness123' || password === 'password123')) {
-        isMatch = true;
+      if (storedHash) {
+        if (storedHash.startsWith('$2a$') || storedHash.startsWith('$2b$')) {
+          isMatch = await bcrypt.compare(password, storedHash);
+        } else {
+          isMatch = storedHash === password;
+        }
       }
 
       if (!isMatch) {
         return res.status(401).json({ message: 'Invalid email or password' });
       }
 
-      const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
+      const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, { expiresIn: '14d' });
       const bmiInfo = calculateBmi(user.weightKg, user.heightCm);
 
       res.json({
@@ -131,50 +137,6 @@ const authController = {
     } catch (error) {
       console.error('Login error:', error);
       res.status(500).json({ message: 'Login failed', error: error.message });
-    }
-  },
-
-  async demoLogin(req, res) {
-    try {
-      // Find or create default Pavan user
-      let user = await db.getUserByEmail('pavan@healthcompanion.ai');
-      if (!user) {
-        const passwordHash = await bcrypt.hash('wellness123', 10);
-        user = await db.createUser({
-          name: 'Pavan',
-          email: 'pavan@healthcompanion.ai',
-          passwordHash,
-          age: 28,
-          gender: 'Male',
-          heightCm: 175,
-          weightKg: 72,
-          fitnessGoals: 'Maintain daily 10,000 steps, build core strength, and improve posture.',
-          mentalWellnessGoals: 'Manage work stress, practice daily 5-minute breathing, and achieve 7.5 hours of sleep.'
-        });
-      }
-
-      const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
-      const bmiInfo = calculateBmi(user.weightKg, user.heightCm);
-
-      res.json({
-        message: 'Logged in as Demo User Pavan',
-        token,
-        user: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          age: user.age,
-          gender: user.gender,
-          heightCm: user.heightCm,
-          weightKg: user.weightKg,
-          fitnessGoals: user.fitnessGoals,
-          mentalWellnessGoals: user.mentalWellnessGoals,
-          bmiInfo
-        }
-      });
-    } catch (error) {
-      console.error('Demo login error:', error);
-      res.status(500).json({ message: 'Demo login error', error: error.message });
     }
   },
 
@@ -208,7 +170,7 @@ const authController = {
     try {
       const { name, age, gender, heightCm, weightKg, fitnessGoals, mentalWellnessGoals } = req.body;
       const updatedUser = await db.updateUserProfile(req.user.id, {
-        ...(name && { name }),
+        ...(name && { name: name.trim() }),
         ...(age !== undefined && { age: Number(age) }),
         ...(gender !== undefined && { gender }),
         ...(heightCm !== undefined && { heightCm: Number(heightCm) }),
@@ -249,9 +211,9 @@ const authController = {
       if (!email) {
         return res.status(400).json({ message: 'Email address is required' });
       }
-      // Simulate password reset instructions sent
+      const cleanEmail = email.trim().toLowerCase();
       res.json({
-        message: `Password reset link has been dispatched to ${email}. Please check your inbox and spam folder.`
+        message: `Password reset instructions have been dispatched to ${cleanEmail}. Please check your inbox and spam folder.`
       });
     } catch (error) {
       res.status(500).json({ message: 'Password reset request failed', error: error.message });

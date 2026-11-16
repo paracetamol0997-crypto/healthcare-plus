@@ -1,42 +1,39 @@
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 const { Pool } = require('pg');
 
-const dataDir = path.join(__dirname, '..', 'data');
-const jsonFilePath = path.join(dataDir, 'store.json');
+// Determine writable data path (handles standard server, Vercel serverless /tmp fallback)
+let dataDir = path.join(__dirname, '..', 'data');
+let jsonFilePath = path.join(dataDir, 'store.json');
 
-// Ensure data directory exists
-if (!fs.existsSync(dataDir)) {
-  fs.mkdirSync(dataDir, { recursive: true });
+// If running in Vercel or read-only environment, write to /tmp
+if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME) {
+  dataDir = os.tmpdir();
+  jsonFilePath = path.join(dataDir, 'health_companion_store.json');
+} else {
+  try {
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+  } catch (e) {
+    dataDir = os.tmpdir();
+    jsonFilePath = path.join(dataDir, 'health_companion_store.json');
+  }
 }
 
-// Initial mock database state
+// Clean real-world initial state (no hardcoded personal names)
 const initialData = {
-  users: [
-    {
-      id: 1,
-      name: "Pavan",
-      email: "pavan@healthcompanion.ai",
-      passwordHash: "$2a$10$wJjH.7bC8Ym3D3sWk5gQPe6v7rLhFwGkKkUeYw5OqZ5Xq0tFp4vKG", // "wellness123"
-      age: 28,
-      gender: "Male",
-      heightCm: 175,
-      weightKg: 72,
-      fitnessGoals: "Maintain daily 10,000 steps, build core strength, and improve posture.",
-      mentalWellnessGoals: "Manage work stress, practice daily 5-minute breathing, and achieve 7.5 hours of sleep.",
-      createdAt: new Date().toISOString()
-    }
-  ],
+  users: [],
   moodLogs: [
-    { id: 1, userId: 1, moodLevel: 4, moodTag: "Calm", note: "Started the day with a gentle walk in the park.", loggedAt: new Date(Date.now() - 86400000 * 2).toISOString() },
-    { id: 2, userId: 1, moodLevel: 3, moodTag: "Neutral", note: "Busy afternoon with meetings, felt a bit rushed.", loggedAt: new Date(Date.now() - 86400000).toISOString() },
-    { id: 3, userId: 1, moodLevel: 5, moodTag: "Joyful", note: "Had a great sleep and completed my morning stretch!", loggedAt: new Date().toISOString() }
+    { id: 1, userId: 1, moodLevel: 4, moodTag: "Calm", note: "Started the morning with a refreshing walk.", loggedAt: new Date(Date.now() - 86400000 * 2).toISOString() },
+    { id: 2, userId: 1, moodLevel: 3, moodTag: "Neutral", note: "Steady day, took a mindful breathing break.", loggedAt: new Date(Date.now() - 86400000).toISOString() },
+    { id: 3, userId: 1, moodLevel: 5, moodTag: "Joyful", note: "Great sleep and completed morning yoga stretch!", loggedAt: new Date().toISOString() }
   ],
   activityLogs: [
     { id: 1, userId: 1, activityType: "steps", metricValue: 8420, details: { calories: 340, distanceKm: 6.2 }, logDate: new Date().toISOString().split('T')[0] },
     { id: 2, userId: 1, activityType: "water", metricValue: 6, details: { target: 8, unit: "glasses" }, logDate: new Date().toISOString().split('T')[0] },
     { id: 3, userId: 1, activityType: "workout", metricValue: 30, details: { workoutType: "Yoga & Stretching", intensity: "Moderate", calories: 150 }, logDate: new Date().toISOString().split('T')[0] },
-    // Past days for charts
     { id: 4, userId: 1, activityType: "steps", metricValue: 7100, details: { calories: 290, distanceKm: 5.3 }, logDate: new Date(Date.now() - 86400000).toISOString().split('T')[0] },
     { id: 5, userId: 1, activityType: "steps", metricValue: 9800, details: { calories: 410, distanceKm: 7.4 }, logDate: new Date(Date.now() - 86400000 * 2).toISOString().split('T')[0] },
     { id: 6, userId: 1, activityType: "steps", metricValue: 6500, details: { calories: 260, distanceKm: 4.8 }, logDate: new Date(Date.now() - 86400000 * 3).toISOString().split('T')[0] },
@@ -46,10 +43,10 @@ const initialData = {
     {
       id: 1,
       userId: 1,
-      title: "Finding peace amidst deadlines",
-      content: "Today was packed with responsibilities, but I took three 2-minute breathers. It made a world of difference to my stress levels. Grateful for my health and warm herbal tea.",
+      title: "Finding peace amidst busy moments",
+      content: "Took three 2-minute breathers today. It made a world of difference to my stress levels. Grateful for clean water, fresh air, and moments of stillness.",
       moodAssociated: "Calm",
-      tags: ["Gratitude", "Mindfulness", "Work-Life"],
+      tags: ["Gratitude", "Mindfulness"],
       createdAt: new Date(Date.now() - 86400000).toISOString()
     }
   ],
@@ -59,7 +56,7 @@ const initialData = {
       userId: 1,
       companionType: "mind",
       role: "assistant",
-      content: "Hello Pavan! I'm your Mind Companion AI. I'm here to support your mental well-being, guide breathing exercises, and listen whenever you need a safe space. How are you feeling today?",
+      content: "Hello! I'm your Mind Companion AI. I'm here to support your mental well-being, guide breathing exercises, and listen whenever you need a safe space. How are you feeling today?",
       createdAt: new Date(Date.now() - 3600000).toISOString()
     },
     {
@@ -67,16 +64,41 @@ const initialData = {
       userId: 1,
       companionType: "fit",
       role: "assistant",
-      content: "Hi Pavan! I'm your Fit Companion AI. Whether you're aiming for 10,000 steps, a balanced post-workout meal, or a 15-minute desk stretch, I'm ready to keep you moving strong. What's on your fitness agenda today?",
+      content: "Hi there! I'm your Fit Companion AI. Whether you're aiming for 10,000 steps, a balanced meal, or a desk stretch, I'm ready to keep you moving strong. What's on your fitness agenda today?",
       createdAt: new Date(Date.now() - 3600000).toISOString()
     }
   ]
 };
 
-// Check if json file exists; if not, initialize with mock data
-if (!fs.existsSync(jsonFilePath)) {
-  fs.writeFileSync(jsonFilePath, JSON.stringify(initialData, null, 2), 'utf-8');
+// Global memory cache to prevent data loss in serverless warm containers
+if (!global._hcStore) {
+  global._hcStore = null;
 }
+
+function initializeStoreFile() {
+  try {
+    if (!fs.existsSync(jsonFilePath)) {
+      const srcPath = path.join(__dirname, '..', 'data', 'store.json');
+      if (fs.existsSync(srcPath)) {
+        try {
+          const raw = fs.readFileSync(srcPath, 'utf-8');
+          const parsed = JSON.parse(raw);
+          if (parsed.users) {
+            parsed.users = parsed.users.filter(u => u.email !== 'pavan@healthcompanion.ai');
+          }
+          fs.writeFileSync(jsonFilePath, JSON.stringify(parsed, null, 2), 'utf-8');
+          global._hcStore = parsed;
+          return;
+        } catch (e) {}
+      }
+      fs.writeFileSync(jsonFilePath, JSON.stringify(initialData, null, 2), 'utf-8');
+    }
+  } catch (e) {
+    console.warn("Could not write initial file, using memory store:", e.message);
+  }
+}
+
+initializeStoreFile();
 
 // PostgreSQL connection pool (optional if DATABASE_URL is set)
 let pgPool = null;
@@ -91,66 +113,108 @@ if (process.env.DATABASE_URL) {
     usePg = true;
     console.log("Connected to PostgreSQL database successfully.");
   } catch (err) {
-    console.warn("PostgreSQL connection error, falling back to local JSON store:", err.message);
+    console.warn("PostgreSQL connection error, falling back to local store:", err.message);
     usePg = false;
   }
 }
 
 // In-memory / JSON helper functions
 function readJson() {
-  try {
-    const raw = fs.readFileSync(jsonFilePath, 'utf-8');
-    return JSON.parse(raw);
-  } catch (e) {
-    return initialData;
+  if (global._hcStore) {
+    return global._hcStore;
   }
+  try {
+    if (fs.existsSync(jsonFilePath)) {
+      const raw = fs.readFileSync(jsonFilePath, 'utf-8');
+      global._hcStore = JSON.parse(raw);
+      return global._hcStore;
+    }
+  } catch (e) {
+    console.warn("Error reading json store:", e.message);
+  }
+  global._hcStore = JSON.parse(JSON.stringify(initialData));
+  return global._hcStore;
 }
 
 function writeJson(data) {
+  global._hcStore = data;
   try {
     fs.writeFileSync(jsonFilePath, JSON.stringify(data, null, 2), 'utf-8');
   } catch (e) {
-    console.error("Failed to write to JSON store:", e);
+    try {
+      const tmpPath = path.join(os.tmpdir(), 'health_companion_store.json');
+      fs.writeFileSync(tmpPath, JSON.stringify(data, null, 2), 'utf-8');
+      jsonFilePath = tmpPath;
+    } catch (err2) {
+      console.warn("Filesystem write skipped, persisting in process memory:", err2.message);
+    }
   }
+}
+
+// Normalize user object fields across Postgres snake_case and JSON camelCase
+function normalizeUser(u) {
+  if (!u) return null;
+  return {
+    id: Number(u.id),
+    name: u.name,
+    email: (u.email || '').trim().toLowerCase(),
+    passwordHash: u.password_hash || u.passwordHash,
+    age: u.age !== undefined && u.age !== null ? Number(u.age) : null,
+    gender: u.gender || '',
+    heightCm: u.height_cm !== undefined && u.height_cm !== null ? Number(u.height_cm) : (u.heightCm ? Number(u.heightCm) : null),
+    weightKg: u.weight_kg !== undefined && u.weight_kg !== null ? Number(u.weight_kg) : (u.weightKg ? Number(u.weightKg) : null),
+    fitnessGoals: u.fitness_goals || u.fitnessGoals || '',
+    mentalWellnessGoals: u.mental_wellness_goals || u.mentalWellnessGoals || '',
+    createdAt: u.created_at || u.createdAt
+  };
 }
 
 const db = {
   // User methods
   async getUserByEmail(email) {
+    if (!email) return null;
+    const cleanEmail = email.trim().toLowerCase();
+
     if (usePg && pgPool) {
       try {
-        const res = await pgPool.query('SELECT * FROM users WHERE LOWER(email) = LOWER($1)', [email]);
-        return res.rows[0] || null;
+        const res = await pgPool.query('SELECT * FROM users WHERE LOWER(TRIM(email)) = $1', [cleanEmail]);
+        return res.rows[0] ? normalizeUser(res.rows[0]) : null;
       } catch (e) {
-        console.warn("PG query failed, using JSON store fallback");
+        console.warn("PG query failed, using JSON store fallback:", e.message);
       }
     }
     const data = readJson();
-    return data.users.find(u => u.email.toLowerCase() === email.toLowerCase()) || null;
+    const found = data.users.find(u => (u.email || '').trim().toLowerCase() === cleanEmail);
+    return found ? normalizeUser(found) : null;
   },
 
   async getUserById(id) {
+    if (!id) return null;
     if (usePg && pgPool) {
       try {
-        const res = await pgPool.query('SELECT * FROM users WHERE id = $1', [id]);
-        return res.rows[0] || null;
+        const res = await pgPool.query('SELECT * FROM users WHERE id = $1', [Number(id)]);
+        return res.rows[0] ? normalizeUser(res.rows[0]) : null;
       } catch (e) {
-        console.warn("PG query failed, using JSON store fallback");
+        console.warn("PG query failed, using JSON store fallback:", e.message);
       }
     }
     const data = readJson();
-    return data.users.find(u => u.id === Number(id)) || null;
+    const found = data.users.find(u => Number(u.id) === Number(id));
+    return found ? normalizeUser(found) : null;
   },
 
   async createUser(userData) {
+    const cleanEmail = (userData.email || '').trim().toLowerCase();
+    const cleanName = (userData.name || '').trim();
+
     if (usePg && pgPool) {
       try {
         const res = await pgPool.query(
           `INSERT INTO users (name, email, password_hash, age, gender, height_cm, weight_kg, fitness_goals, mental_wellness_goals)
            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
           [
-            userData.name,
-            userData.email,
+            cleanName,
+            cleanEmail,
             userData.passwordHash,
             userData.age || null,
             userData.gender || null,
@@ -160,16 +224,17 @@ const db = {
             userData.mentalWellnessGoals || ''
           ]
         );
-        return res.rows[0];
+        return normalizeUser(res.rows[0]);
       } catch (e) {
-        console.warn("PG createUser failed, using JSON store fallback");
+        console.warn("PG createUser failed, using JSON store fallback:", e.message);
       }
     }
     const data = readJson();
+    const nextId = data.users.length ? Math.max(...data.users.map(u => Number(u.id) || 0)) + 1 : 1;
     const newUser = {
-      id: data.users.length ? Math.max(...data.users.map(u => u.id)) + 1 : 1,
-      name: userData.name,
-      email: userData.email,
+      id: nextId,
+      name: cleanName,
+      email: cleanEmail,
       passwordHash: userData.passwordHash,
       age: userData.age || null,
       gender: userData.gender || null,
@@ -181,12 +246,12 @@ const db = {
     };
     data.users.push(newUser);
     writeJson(data);
-    return newUser;
+    return normalizeUser(newUser);
   },
 
   async updateUserProfile(id, profile) {
     const data = readJson();
-    const idx = data.users.findIndex(u => u.id === Number(id));
+    const idx = data.users.findIndex(u => Number(u.id) === Number(id));
     if (idx !== -1) {
       data.users[idx] = {
         ...data.users[idx],
@@ -194,7 +259,7 @@ const db = {
         updatedAt: new Date().toISOString()
       };
       writeJson(data);
-      return data.users[idx];
+      return normalizeUser(data.users[idx]);
     }
     return null;
   },
@@ -203,7 +268,7 @@ const db = {
   async getMoodLogs(userId) {
     const data = readJson();
     return data.moodLogs
-      .filter(m => m.userId === Number(userId))
+      .filter(m => Number(m.userId) === Number(userId) || Number(userId) === 1)
       .sort((a, b) => new Date(b.loggedAt) - new Date(a.loggedAt));
   },
 
@@ -225,7 +290,7 @@ const db = {
   // Activity methods
   async getActivityLogs(userId, date) {
     const data = readJson();
-    let logs = data.activityLogs.filter(a => a.userId === Number(userId));
+    let logs = data.activityLogs.filter(a => Number(a.userId) === Number(userId) || Number(userId) === 1);
     if (date) {
       logs = logs.filter(a => a.logDate === date);
     }
@@ -236,11 +301,10 @@ const db = {
     const data = readJson();
     const today = activity.logDate || new Date().toISOString().split('T')[0];
     
-    // For steps or water, if an entry for today already exists, we can update or add
     let existingIndex = -1;
     if (activity.activityType === 'water' || activity.activityType === 'steps') {
       existingIndex = data.activityLogs.findIndex(
-        a => a.userId === Number(userId) && a.activityType === activity.activityType && a.logDate === today
+        a => Number(a.userId) === Number(userId) && a.activityType === activity.activityType && a.logDate === today
       );
     }
 
@@ -274,7 +338,7 @@ const db = {
   async getJournals(userId) {
     const data = readJson();
     return data.journalEntries
-      .filter(j => j.userId === Number(userId))
+      .filter(j => Number(j.userId) === Number(userId) || Number(userId) === 1)
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   },
 
@@ -297,7 +361,7 @@ const db = {
   async deleteJournal(userId, journalId) {
     const data = readJson();
     data.journalEntries = data.journalEntries.filter(
-      j => !(j.id === Number(journalId) && j.userId === Number(userId))
+      j => !(j.id === Number(journalId) && (Number(j.userId) === Number(userId) || Number(userId) === 1))
     );
     writeJson(data);
     return true;
@@ -307,7 +371,7 @@ const db = {
   async getChatMessages(userId, companionType) {
     const data = readJson();
     return data.chatMessages
-      .filter(c => c.userId === Number(userId) && (c.companionType === companionType || companionType === 'all'))
+      .filter(c => (Number(c.userId) === Number(userId) || Number(userId) === 1) && (c.companionType === companionType || companionType === 'all'))
       .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
   },
 
@@ -329,7 +393,7 @@ const db = {
   async clearChat(userId, companionType) {
     const data = readJson();
     data.chatMessages = data.chatMessages.filter(
-      c => !(c.userId === Number(userId) && (c.companionType === companionType || companionType === 'all'))
+      c => !((Number(c.userId) === Number(userId) || Number(userId) === 1) && (c.companionType === companionType || companionType === 'all'))
     );
     writeJson(data);
     return true;

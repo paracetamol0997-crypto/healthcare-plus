@@ -57,7 +57,7 @@ export const DashboardPage: React.FC = () => {
     return 'Good Evening';
   };
 
-  const userName = user ? user.name : 'Pavan';
+  const userName = user?.name || 'Friend';
   const latestMood = moods.length > 0 ? moods[0] : null;
 
   const loadData = async () => {
@@ -185,112 +185,227 @@ export const DashboardPage: React.FC = () => {
           </div>
         )}
 
-        {/* 4 Core Summary Metric Cards */}
+        {/* 4 Core Summary Metric Cards with Engaging Visuals */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           
-          {/* Steps */}
-          <div className="p-5 rounded-3xl bg-white dark:bg-wellness-darkCard border border-slate-200 dark:border-slate-800 shadow-sm transition-all hover:shadow-md">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                Daily Steps
-              </span>
-              <div className="p-2 rounded-xl bg-emerald-100 dark:bg-emerald-950 text-emerald-600">
-                <Footprints className="w-4 h-4" />
+          {/* Card 1: Daily Steps */}
+          <div className="group overflow-hidden rounded-3xl bg-white dark:bg-wellness-darkCard border border-slate-200/80 dark:border-slate-800 shadow-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-1 flex flex-col justify-between">
+            <div className="relative h-32 w-full overflow-hidden">
+              <img
+                src="https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?auto=format&fit=crop&w=600&q=80"
+                alt="Scenic walking trail in nature"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                loading="lazy"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/30 to-transparent" />
+              <div className="absolute top-2.5 right-2.5">
+                <span className="text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-emerald-500/90 text-white shadow-sm backdrop-blur-sm">
+                  Active
+                </span>
+              </div>
+              <div className="absolute bottom-2.5 left-3.5 right-3.5 flex items-center justify-between text-white">
+                <span className="text-xs font-bold tracking-wide flex items-center gap-1.5 drop-shadow">
+                  <Footprints className="w-3.5 h-3.5 text-emerald-400" />
+                  Daily Steps
+                </span>
+                <span className="text-[11px] font-black text-emerald-300">
+                  {stepsPercent}%
+                </span>
               </div>
             </div>
-            <div className="flex items-baseline gap-2 mb-2">
-              <span className="text-2xl font-black text-slate-900 dark:text-white">
-                {todaySteps.toLocaleString()}
-              </span>
-              <span className="text-xs text-slate-400">/ {todayGoal.toLocaleString()}</span>
+
+            <div className="p-4 space-y-2.5">
+              <div className="flex items-baseline justify-between">
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-2xl font-black text-slate-900 dark:text-white">
+                    {todaySteps.toLocaleString()}
+                  </span>
+                  <span className="text-xs text-slate-400">/ {todayGoal.toLocaleString()}</span>
+                </div>
+                <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+                  {stepsPercent >= 100 ? 'Goal Done' : 'In Progress'}
+                </span>
+              </div>
+
+              <div className="w-full bg-emerald-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
+                <div
+                  className="bg-emerald-500 h-full rounded-full transition-all duration-500"
+                  style={{ width: `${stepsPercent}%` }}
+                />
+              </div>
+
+              <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 pt-0.5">
+                <span>{stepsPercent}% of 10k target</span>
+                <Link to="/physical-health" className="text-emerald-600 dark:text-emerald-400 font-bold hover:underline">
+                  Log + &rarr;
+                </Link>
+              </div>
             </div>
-            <div className="w-full bg-emerald-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden mb-2">
-              <div
-                className="bg-emerald-500 h-full rounded-full transition-all duration-500"
-                style={{ width: `${stepsPercent}%` }}
-              />
-            </div>
-            <span className="text-[11px] text-slate-500 dark:text-slate-400">
-              {stepsPercent}% of daily 10,000 steps goal
-            </span>
           </div>
 
-          {/* Water */}
-          <div className="p-5 rounded-3xl bg-white dark:bg-wellness-darkCard border border-slate-200 dark:border-slate-800 shadow-sm transition-all hover:shadow-md">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                Hydration
-              </span>
-              <div className="p-2 rounded-xl bg-blue-100 dark:bg-blue-950 text-blue-600">
-                <Droplets className="w-4 h-4" />
+          {/* Card 2: Hydration */}
+          <div className="group overflow-hidden rounded-3xl bg-white dark:bg-wellness-darkCard border border-slate-200/80 dark:border-slate-800 shadow-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-1 flex flex-col justify-between">
+            <div className="relative h-32 w-full overflow-hidden">
+              <img
+                src="https://images.unsplash.com/photo-1548839140-29a749e1bc4e?auto=format&fit=crop&w=600&q=80"
+                alt="Pure crystal water in glass"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                loading="lazy"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/30 to-transparent" />
+              <div className="absolute top-2.5 right-2.5">
+                <span className="text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-blue-500/90 text-white shadow-sm backdrop-blur-sm">
+                  Hydrated
+                </span>
+              </div>
+              <div className="absolute bottom-2.5 left-3.5 right-3.5 flex items-center justify-between text-white">
+                <span className="text-xs font-bold tracking-wide flex items-center gap-1.5 drop-shadow">
+                  <Droplets className="w-3.5 h-3.5 text-blue-400" />
+                  Hydration
+                </span>
+                <span className="text-[11px] font-black text-blue-300">
+                  {Math.round((todayWater / waterGoal) * 100)}%
+                </span>
               </div>
             </div>
-            <div className="flex items-baseline gap-2 mb-2">
-              <span className="text-2xl font-black text-slate-900 dark:text-white">
-                {todayWater}
-              </span>
-              <span className="text-xs text-slate-400">/ {waterGoal} glasses</span>
+
+            <div className="p-4 space-y-2.5">
+              <div className="flex items-baseline justify-between">
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-2xl font-black text-slate-900 dark:text-white">
+                    {todayWater}
+                  </span>
+                  <span className="text-xs text-slate-400">/ {waterGoal} glasses</span>
+                </div>
+                <span className="text-[11px] font-semibold text-blue-600 dark:text-blue-400">
+                  {todayWater * 250} ml
+                </span>
+              </div>
+
+              <div className="w-full bg-blue-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
+                <div
+                  className="bg-blue-500 h-full rounded-full transition-all duration-500"
+                  style={{ width: `${Math.min(100, Math.round((todayWater / waterGoal) * 100))}%` }}
+                />
+              </div>
+
+              <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 pt-0.5">
+                <span>{waterGoal - todayWater > 0 ? `${waterGoal - todayWater} cups left` : 'Daily goal achieved'}</span>
+                <Link to="/physical-health" className="text-blue-600 dark:text-blue-400 font-bold hover:underline">
+                  Drink + &rarr;
+                </Link>
+              </div>
             </div>
-            <div className="w-full bg-blue-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden mb-2">
-              <div
-                className="bg-blue-500 h-full rounded-full transition-all duration-500"
-                style={{ width: `${Math.min(100, Math.round((todayWater / waterGoal) * 100))}%` }}
-              />
-            </div>
-            <span className="text-[11px] text-slate-500 dark:text-slate-400">
-              {todayWater * 250} ml drank today
-            </span>
           </div>
 
-          {/* Workout Minutes */}
-          <div className="p-5 rounded-3xl bg-white dark:bg-wellness-darkCard border border-slate-200 dark:border-slate-800 shadow-sm transition-all hover:shadow-md">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                Active Movement
-              </span>
-              <div className="p-2 rounded-xl bg-amber-100 dark:bg-amber-950 text-amber-600">
-                <Clock className="w-4 h-4" />
+          {/* Card 3: Active Movement */}
+          <div className="group overflow-hidden rounded-3xl bg-white dark:bg-wellness-darkCard border border-slate-200/80 dark:border-slate-800 shadow-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-1 flex flex-col justify-between">
+            <div className="relative h-32 w-full overflow-hidden">
+              <img
+                src="https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=600&q=80"
+                alt="Mindful movement and yoga stretch"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                loading="lazy"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/30 to-transparent" />
+              <div className="absolute top-2.5 right-2.5">
+                <span className="text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-amber-500/90 text-white shadow-sm backdrop-blur-sm">
+                  Movement
+                </span>
+              </div>
+              <div className="absolute bottom-2.5 left-3.5 right-3.5 flex items-center justify-between text-white">
+                <span className="text-xs font-bold tracking-wide flex items-center gap-1.5 drop-shadow">
+                  <Clock className="w-3.5 h-3.5 text-amber-400" />
+                  Active Movement
+                </span>
+                <span className="text-[11px] font-black text-amber-300">
+                  {Math.min(100, Math.round((todayWorkoutMin / 45) * 100))}%
+                </span>
               </div>
             </div>
-            <div className="flex items-baseline gap-2 mb-2">
-              <span className="text-2xl font-black text-slate-900 dark:text-white">
-                {todayWorkoutMin}
-              </span>
-              <span className="text-xs text-slate-400">mins active</span>
+
+            <div className="p-4 space-y-2.5">
+              <div className="flex items-baseline justify-between">
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-2xl font-black text-slate-900 dark:text-white">
+                    {todayWorkoutMin}
+                  </span>
+                  <span className="text-xs text-slate-400">mins active</span>
+                </div>
+                <span className="text-[11px] font-semibold text-amber-600 dark:text-amber-400">
+                  Goal: 45 min
+                </span>
+              </div>
+
+              <div className="w-full bg-amber-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
+                <div
+                  className="bg-amber-500 h-full rounded-full transition-all duration-500"
+                  style={{ width: `${Math.min(100, Math.round((todayWorkoutMin / 45) * 100))}%` }}
+                />
+              </div>
+
+              <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 pt-0.5">
+                <span>Yoga, walks &amp; routines</span>
+                <Link to="/physical-health" className="text-amber-600 dark:text-amber-400 font-bold hover:underline">
+                  Routines &rarr;
+                </Link>
+              </div>
             </div>
-            <div className="w-full bg-amber-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden mb-2">
-              <div
-                className="bg-amber-500 h-full rounded-full transition-all duration-500"
-                style={{ width: `${Math.min(100, Math.round((todayWorkoutMin / 45) * 100))}%` }}
-              />
-            </div>
-            <span className="text-[11px] text-slate-500 dark:text-slate-400">
-              Goal: 45 active minutes
-            </span>
           </div>
 
-          {/* Caloric Burn */}
-          <div className="p-5 rounded-3xl bg-white dark:bg-wellness-darkCard border border-slate-200 dark:border-slate-800 shadow-sm transition-all hover:shadow-md">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                Active Energy
-              </span>
-              <div className="p-2 rounded-xl bg-rose-100 dark:bg-rose-950 text-rose-600">
-                <Flame className="w-4 h-4" />
+          {/* Card 4: Active Energy */}
+          <div className="group overflow-hidden rounded-3xl bg-white dark:bg-wellness-darkCard border border-slate-200/80 dark:border-slate-800 shadow-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-1 flex flex-col justify-between">
+            <div className="relative h-32 w-full overflow-hidden">
+              <img
+                src="https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=600&q=80"
+                alt="Dynamic workout and metabolic energy"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                loading="lazy"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/30 to-transparent" />
+              <div className="absolute top-2.5 right-2.5">
+                <span className="text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-rose-500/90 text-white shadow-sm backdrop-blur-sm">
+                  Vitality
+                </span>
+              </div>
+              <div className="absolute bottom-2.5 left-3.5 right-3.5 flex items-center justify-between text-white">
+                <span className="text-xs font-bold tracking-wide flex items-center gap-1.5 drop-shadow">
+                  <Flame className="w-3.5 h-3.5 text-rose-400" />
+                  Active Energy
+                </span>
+                <span className="text-[11px] font-black text-rose-300">
+                  ~{todayCalories} kcal
+                </span>
               </div>
             </div>
-            <div className="flex items-baseline gap-2 mb-2">
-              <span className="text-2xl font-black text-slate-900 dark:text-white">
-                ~{todayCalories}
-              </span>
-              <span className="text-xs text-slate-400">kcal</span>
+
+            <div className="p-4 space-y-2.5">
+              <div className="flex items-baseline justify-between">
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-2xl font-black text-slate-900 dark:text-white">
+                    ~{todayCalories}
+                  </span>
+                  <span className="text-xs text-slate-400">kcal burned</span>
+                </div>
+                <span className="text-[11px] font-semibold text-rose-600 dark:text-rose-400">
+                  Target: 500 kcal
+                </span>
+              </div>
+
+              <div className="w-full bg-rose-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
+                <div
+                  className="bg-rose-500 h-full rounded-full transition-all duration-500"
+                  style={{ width: `${Math.min(100, Math.round((todayCalories / 500) * 100))}%` }}
+                />
+              </div>
+
+              <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 pt-0.5">
+                <span>Steps + workouts combined</span>
+                <Link to="/physical-health" className="text-rose-600 dark:text-rose-400 font-bold hover:underline">
+                  Coach &rarr;
+                </Link>
+              </div>
             </div>
-            <div className="w-full bg-rose-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden mb-2">
-              <div className="bg-rose-500 h-full rounded-full w-3/4" />
-            </div>
-            <span className="text-[11px] text-slate-500 dark:text-slate-400">
-              Steps &amp; workout combined
-            </span>
           </div>
 
         </div>

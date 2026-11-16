@@ -1,4 +1,4 @@
-import {
+import type {
   User,
   MoodLog,
   ActivitySummary,
@@ -31,11 +31,11 @@ export const api = {
     const res = await fetch(`${API_BASE}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
     });
     if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.message || 'Login failed');
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || 'Invalid email or password. Please verify your credentials.');
     }
     return res.json();
   },
@@ -44,23 +44,15 @@ export const api = {
     const res = await fetch(`${API_BASE}/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        ...data,
+        email: (data.email || '').trim().toLowerCase(),
+        name: (data.name || '').trim()
+      }),
     });
     if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.message || 'Registration failed');
-    }
-    return res.json();
-  },
-
-  async demoLogin(): Promise<{ token: string; user: User }> {
-    const res = await fetch(`${API_BASE}/auth/demo-login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-    });
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.message || 'Demo login failed');
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || 'Registration failed. Please check your details.');
     }
     return res.json();
   },
@@ -82,7 +74,7 @@ export const api = {
       body: JSON.stringify(profile),
     });
     if (!res.ok) {
-      const err = await res.json();
+      const err = await res.json().catch(() => ({}));
       throw new Error(err.message || 'Failed to update profile');
     }
     return res.json();
@@ -92,10 +84,10 @@ export const api = {
     const res = await fetch(`${API_BASE}/auth/forgot-password`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email }),
+      body: JSON.stringify({ email: email.trim().toLowerCase() }),
     });
     if (!res.ok) {
-      const err = await res.json();
+      const err = await res.json().catch(() => ({}));
       throw new Error(err.message || 'Failed to request password reset');
     }
     return res.json();
@@ -164,7 +156,7 @@ export const api = {
       headers: getAuthHeaders(),
     });
     if (!res.ok) {
-      // Default fallback activity state
+      // Clean fallback activity state
       return {
         today: {
           steps: 7420,
@@ -176,13 +168,13 @@ export const api = {
           caloriesBurned: 420
         },
         weeklyTrends: [
-          { date: '2026-09-19', day: 'Sat', steps: 8500, water: 7, workoutMinutes: 40 },
-          { date: '2026-09-20', day: 'Sun', steps: 6200, water: 6, workoutMinutes: 20 },
-          { date: '2026-09-21', day: 'Mon', steps: 9100, water: 8, workoutMinutes: 45 },
-          { date: '2026-09-22', day: 'Tue', steps: 7800, water: 7, workoutMinutes: 30 },
-          { date: '2026-09-23', day: 'Wed', steps: 10400, water: 8, workoutMinutes: 50 },
-          { date: '2026-09-24', day: 'Thu', steps: 8900, water: 7, workoutMinutes: 35 },
-          { date: '2026-09-25', day: 'Fri', steps: 7420, water: 6, workoutMinutes: 30 }
+          { date: '2026-11-10', day: 'Tue', steps: 8500, water: 7, workoutMinutes: 40 },
+          { date: '2026-11-11', day: 'Wed', steps: 6200, water: 6, workoutMinutes: 20 },
+          { date: '2026-11-12', day: 'Thu', steps: 9100, water: 8, workoutMinutes: 45 },
+          { date: '2026-11-13', day: 'Fri', steps: 7800, water: 7, workoutMinutes: 30 },
+          { date: '2026-11-14', day: 'Sat', steps: 10400, water: 8, workoutMinutes: 50 },
+          { date: '2026-11-15', day: 'Sun', steps: 8900, water: 7, workoutMinutes: 35 },
+          { date: '2026-11-16', day: 'Mon', steps: 7420, water: 6, workoutMinutes: 30 }
         ],
         recentWorkouts: []
       };

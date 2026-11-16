@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import {
@@ -14,7 +14,6 @@ import {
   Menu,
   X,
   PhoneCall,
-  Sparkles,
   LayoutDashboard
 } from 'lucide-react';
 
@@ -23,20 +22,10 @@ interface NavbarProps {
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ onOpenEmergency }) => {
-  const { user, logout, demoLogin } = useAuth();
+  const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
-  const navigate = useNavigate();
-
-  const handleDemo = async () => {
-    try {
-      await demoLogin();
-      navigate('/dashboard');
-    } catch (err) {
-      console.error(err);
-    }
-  };
 
   const navLinks = [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard, authOnly: true },
@@ -70,7 +59,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenEmergency }) => {
                 </span>
               </div>
               <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium hidden sm:block">
-                Mind & Body Wellness
+                Mind &amp; Body Wellness
               </p>
             </div>
           </Link>
@@ -128,7 +117,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenEmergency }) => {
                   className="flex items-center gap-2.5 pl-2 pr-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors"
                 >
                   <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-white font-bold text-xs shadow-sm">
-                    {user.name.charAt(0).toUpperCase()}
+                    {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
                   </div>
                   <div className="text-left text-xs">
                     <span className="font-semibold text-slate-900 dark:text-white block leading-tight">
@@ -149,22 +138,15 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenEmergency }) => {
               </div>
             ) : (
               <div className="flex items-center gap-2">
-                <button
-                  onClick={handleDemo}
-                  className="hidden lg:flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-100/70 dark:bg-emerald-950/60 rounded-xl hover:bg-emerald-200/80 transition-colors"
-                >
-                  <Sparkles className="w-3.5 h-3.5" />
-                  <span>Try as Pavan</span>
-                </button>
                 <Link
                   to="/login"
-                  className="px-3.5 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
+                  className="px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
                 >
                   Sign In
                 </Link>
                 <Link
                   to="/register"
-                  className="px-4 py-2 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-md shadow-emerald-600/20 transition-all hover:shadow-lg hover:-translate-y-0.5"
+                  className="px-5 py-2.5 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-md shadow-emerald-600/20 transition-all hover:shadow-lg hover:-translate-y-0.5"
                 >
                   Get Started
                 </Link>
@@ -239,15 +221,6 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenEmergency }) => {
               </>
             ) : (
               <div className="grid grid-cols-2 gap-2 pt-1">
-                <button
-                  onClick={() => {
-                    handleDemo();
-                    setMobileMenuOpen(false);
-                  }}
-                  className="w-full py-2.5 text-xs font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 rounded-xl"
-                >
-                  Try as Pavan
-                </button>
                 <Link
                   to="/login"
                   onClick={() => setMobileMenuOpen(false)}
@@ -258,7 +231,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenEmergency }) => {
                 <Link
                   to="/register"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="col-span-2 py-2.5 text-center text-sm font-semibold text-white bg-emerald-600 rounded-xl"
+                  className="w-full py-2.5 text-center text-sm font-semibold text-white bg-emerald-600 rounded-xl shadow-sm"
                 >
                   Get Started
                 </Link>

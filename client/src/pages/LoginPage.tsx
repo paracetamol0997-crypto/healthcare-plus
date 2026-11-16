@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Heart, Sparkles, Lock, Mail, ArrowRight, UserCheck } from 'lucide-react';
+import { Heart, Lock, Mail, ArrowRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export const LoginPage: React.FC = () => {
-  const { login, demoLogin } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState('');
@@ -14,27 +14,19 @@ export const LoginPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
-    setLoading(true);
-
-    try {
-      await login(email, password);
-      navigate('/dashboard');
-    } catch (err: any) {
-      setError(err.message || 'Login failed. Please check your credentials.');
-    } finally {
-      setLoading(false);
+    if (!email.trim() || !password) {
+      setError('Please provide both email and password.');
+      return;
     }
-  };
 
-  const handleDemo = async () => {
     setError(null);
     setLoading(true);
+
     try {
-      await demoLogin();
+      await login(email.trim().toLowerCase(), password);
       navigate('/dashboard');
     } catch (err: any) {
-      setError(err.message || 'Demo login failed');
+      setError(err.message || 'Login failed. Please verify your credentials.');
     } finally {
       setLoading(false);
     }
@@ -53,26 +45,8 @@ export const LoginPage: React.FC = () => {
             Welcome Back
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            Continue your daily journey with Health Companion AI.
+            Sign in to access your personal wellness and fitness sanctuary.
           </p>
-        </div>
-
-        {/* Demo Fast Login Button */}
-        <button
-          onClick={handleDemo}
-          type="button"
-          disabled={loading}
-          className="w-full py-3 px-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 font-bold text-xs sm:text-sm hover:bg-emerald-100 dark:hover:bg-emerald-900/60 transition-all flex items-center justify-center gap-2"
-        >
-          <UserCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-          <span>Instant Demo Login (Pavan)</span>
-        </button>
-
-        <div className="relative flex items-center justify-center">
-          <div className="border-t border-slate-200 dark:border-slate-800 w-full" />
-          <span className="bg-white dark:bg-wellness-darkCard px-3 text-[11px] text-slate-400 uppercase tracking-wider font-semibold">
-            Or Sign In with Email
-          </span>
         </div>
 
         {/* Error Alert */}
@@ -139,7 +113,7 @@ export const LoginPage: React.FC = () => {
           <p className="text-xs text-slate-500 dark:text-slate-400">
             Don&apos;t have an account yet?{' '}
             <Link to="/register" className="font-bold text-emerald-600 dark:text-emerald-400 hover:underline">
-              Create one now
+              Create an account
             </Link>
           </p>
         </div>
