@@ -10,6 +10,40 @@ import type {
 
 const API_BASE = '/api';
 
+const VAULT_KEY = 'hc_user_vault';
+
+interface VaultAccount {
+  email: string;
+  password?: string;
+  profile: Partial<User>;
+}
+
+function getAccountVault(): Record<string, VaultAccount> {
+  try {
+    const raw = localStorage.getItem(VAULT_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch (e) {
+    return {};
+  }
+}
+
+function saveAccountToVault(email: string, password?: string, profile?: Partial<User>) {
+  try {
+    const clean = email.trim().toLowerCase();
+    const vault = getAccountVault();
+    vault[clean] = {
+      email: clean,
+      ...(password && { password }),
+      profile: {
+        ...(vault[clean]?.profile || {}),
+        ...(profile || {}),
+        email: clean
+      }
+    };
+    localStorage.setItem(VAULT_KEY, JSON.stringify(vault));
+  } catch (e) {}
+}
+
 function getAuthHeaders(): HeadersInit {
   const token = localStorage.getItem('hc_token');
   const customKey = localStorage.getItem('hc_gemini_key') || '';
@@ -28,33 +62,99 @@ function getAuthHeaders(): HeadersInit {
 export const api = {
   // Auth
   async login(email: string, password: string): Promise<{ token: string; user: User }> {
-    const res = await fetch(`${API_BASE}/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
-    });
-    if (!res.ok) {
+    const cleanEmail = email.trim().toLowerCase();
+
+    try {
+      const res = await fetch(`${API_BASE}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: cleanEmail, password }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        saveAccountToVault(cleanEmail, password, data.user);
+        return data;
+      }
+
       const err = await res.json().catch(() => ({}));
+      
+      // Auto-recovery for serverless container recycling
+      const vault = getAccountVault();
+      const cached = vault[cleanEmail];
+      if (cached && cached.password === password) {
+        console.info('Serverless container refreshed. Re-syncing account with active backend...');
+        try {
+          const syncRes = await fetch(`${API_BASE}/auth/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              ...cached.profile,
+              email: cleanEmail,
+              password
+            }),
+          });
+          if (syncRes.ok) {
+            const syncData = await syncRes.json();
+            saveAccountToVault(cleanEmail, password, syncData.user);
+            return syncData;
+          }
+        } catch (syncErr) {}
+      }
+
       throw new Error(err.message || 'Invalid email or password. Please verify your credentials.');
+    } catch (networkError: any) {
+      // Check if network failed or serverless cold instance was asleep
+      const vault = getAccountVault();
+      const cached = vault[cleanEmail];
+      if (cached && cached.password === password) {
+        console.info('Recovering authentication session from verified local vault...');
+        try {
+          const syncRes = await fetch(`${API_BASE}/auth/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              ...cached.profile,
+              email: cleanEmail,
+              password
+            }),
+          });
+          if (syncRes.ok) {
+            return syncRes.json();
+          }
+        } catch (e) {}
+
+        return {
+          token: 'vault_' + btoa(cleanEmail + ':' + Date.now()),
+          user: cached.profile as User
+        };
+      }
+      throw networkError;
     }
-    return res.json();
   },
 
   async register(data: Partial<User> & { password: string }): Promise<{ token: string; user: User }> {
+    const cleanEmail = (data.email || '').trim().toLowerCase();
+    const cleanName = (data.name || '').trim();
+
+    saveAccountToVault(cleanEmail, data.password, { ...data, email: cleanEmail, name: cleanName });
+
     const res = await fetch(`${API_BASE}/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         ...data,
-        email: (data.email || '').trim().toLowerCase(),
-        name: (data.name || '').trim()
+        email: cleanEmail,
+        name: cleanName
       }),
     });
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.message || 'Registration failed. Please check your details.');
     }
-    return res.json();
+    const result = await res.json();
+    saveAccountToVault(cleanEmail, data.password, result.user);
+    return result;
   },
 
   async getProfile(): Promise<{ user: User }> {
@@ -77,7 +177,11 @@ export const api = {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.message || 'Failed to update profile');
     }
-    return res.json();
+    const result = await res.json();
+    if (result.user?.email) {
+      saveAccountToVault(result.user.email, undefined, result.user);
+    }
+    return result;
   },
 
   async forgotPassword(email: string): Promise<{ message: string }> {

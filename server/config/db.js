@@ -3,22 +3,32 @@ const path = require('path');
 const os = require('os');
 const { Pool } = require('pg');
 
-// Determine writable data path (handles standard server, Vercel serverless /tmp fallback)
-let dataDir = path.join(__dirname, '..', 'data');
-let jsonFilePath = path.join(dataDir, 'store.json');
-
-// If running in Vercel or read-only environment, write to /tmp
-if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME) {
-  dataDir = os.tmpdir();
-  jsonFilePath = path.join(dataDir, 'health_companion_store.json');
-} else {
+function getStorePath() {
+  const tmpPath = path.join(os.tmpdir(), 'health_companion_store.json');
+  // If running in Vercel or Lambda or tmp file exists, prefer tmpPath
+  if (
+    process.env.VERCEL ||
+    process.env.VERCEL_ENV ||
+    process.env.NOW_REGION ||
+    process.env.AWS_LAMBDA_FUNCTION_NAME ||
+    process.env.AWS_EXECUTION_ENV ||
+    fs.existsSync(tmpPath)
+  ) {
+    return tmpPath;
+  }
+  const localDir = path.join(__dirname, '..', 'data');
+  const localPath = path.join(localDir, 'store.json');
   try {
-    if (!fs.existsSync(dataDir)) {
-      fs.mkdirSync(dataDir, { recursive: true });
+    if (!fs.existsSync(localDir)) {
+      fs.mkdirSync(localDir, { recursive: true });
     }
+    // Test write permission
+    const testFile = path.join(localDir, '.write_test');
+    fs.writeFileSync(testFile, '1');
+    fs.unlinkSync(testFile);
+    return localPath;
   } catch (e) {
-    dataDir = os.tmpdir();
-    jsonFilePath = path.join(dataDir, 'health_companion_store.json');
+    return tmpPath;
   }
 }
 
@@ -77,21 +87,26 @@ if (!global._hcStore) {
 
 function initializeStoreFile() {
   try {
-    if (!fs.existsSync(jsonFilePath)) {
-      const srcPath = path.join(__dirname, '..', 'data', 'store.json');
+    const storePath = getStorePath();
+    const srcPath = path.join(__dirname, '..', 'data', 'store.json');
+
+    if (!fs.existsSync(storePath)) {
       if (fs.existsSync(srcPath)) {
         try {
           const raw = fs.readFileSync(srcPath, 'utf-8');
           const parsed = JSON.parse(raw);
-          if (parsed.users) {
-            parsed.users = parsed.users.filter(u => u.email !== 'pavan@healthcompanion.ai');
-          }
-          fs.writeFileSync(jsonFilePath, JSON.stringify(parsed, null, 2), 'utf-8');
+          fs.writeFileSync(storePath, JSON.stringify(parsed, null, 2), 'utf-8');
           global._hcStore = parsed;
           return;
         } catch (e) {}
       }
-      fs.writeFileSync(jsonFilePath, JSON.stringify(initialData, null, 2), 'utf-8');
+      fs.writeFileSync(storePath, JSON.stringify(initialData, null, 2), 'utf-8');
+      global._hcStore = JSON.parse(JSON.stringify(initialData));
+    } else {
+      try {
+        const raw = fs.readFileSync(storePath, 'utf-8');
+        global._hcStore = JSON.parse(raw);
+      } catch (e) {}
     }
   } catch (e) {
     console.warn("Could not write initial file, using memory store:", e.message);
@@ -120,35 +135,62 @@ if (process.env.DATABASE_URL) {
 
 // In-memory / JSON helper functions
 function readJson() {
-  if (global._hcStore) {
+  if (global._hcStore && Array.isArray(global._hcStore.users) && global._hcStore.users.length > 0) {
     return global._hcStore;
   }
+  const storePath = getStorePath();
   try {
-    if (fs.existsSync(jsonFilePath)) {
-      const raw = fs.readFileSync(jsonFilePath, 'utf-8');
-      global._hcStore = JSON.parse(raw);
-      return global._hcStore;
+    if (fs.existsSync(storePath)) {
+      const raw = fs.readFileSync(storePath, 'utf-8');
+      const parsed = JSON.parse(raw);
+      if (parsed && Array.isArray(parsed.users)) {
+        global._hcStore = parsed;
+        return global._hcStore;
+      }
     }
   } catch (e) {
     console.warn("Error reading json store:", e.message);
   }
-  global._hcStore = JSON.parse(JSON.stringify(initialData));
+
+  // Fallback to local store.json if storePath didn't have data
+  try {
+    const fallbackPath = path.join(__dirname, '..', 'data', 'store.json');
+    if (fs.existsSync(fallbackPath) && fallbackPath !== storePath) {
+      const raw = fs.readFileSync(fallbackPath, 'utf-8');
+      const parsed = JSON.parse(raw);
+      if (parsed && Array.isArray(parsed.users) && parsed.users.length > 0) {
+        global._hcStore = parsed;
+        return global._hcStore;
+      }
+    }
+  } catch (e) {}
+
+  global._hcStore = global._hcStore || JSON.parse(JSON.stringify(initialData));
   return global._hcStore;
 }
 
 function writeJson(data) {
   global._hcStore = data;
+  const storePath = getStorePath();
   try {
-    fs.writeFileSync(jsonFilePath, JSON.stringify(data, null, 2), 'utf-8');
+    fs.writeFileSync(storePath, JSON.stringify(data, null, 2), 'utf-8');
   } catch (e) {
     try {
       const tmpPath = path.join(os.tmpdir(), 'health_companion_store.json');
       fs.writeFileSync(tmpPath, JSON.stringify(data, null, 2), 'utf-8');
-      jsonFilePath = tmpPath;
     } catch (err2) {
-      console.warn("Filesystem write skipped, persisting in process memory:", err2.message);
+      console.warn("Filesystem write failed, persisting in process memory:", err2.message);
     }
   }
+
+  // Also mirror to local data directory if writable
+  try {
+    const localDir = path.join(__dirname, '..', 'data');
+    const localPath = path.join(localDir, 'store.json');
+    if (storePath !== localPath && fs.existsSync(localDir)) {
+      fs.writeFileSync(localPath, JSON.stringify(data, null, 2), 'utf-8');
+    }
+  } catch (e) {}
 }
 
 // Normalize user object fields across Postgres snake_case and JSON camelCase
