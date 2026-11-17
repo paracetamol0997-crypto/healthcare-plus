@@ -65,16 +65,19 @@ export const ForgotPasswordPage: React.FC = () => {
             </div>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} method="post" className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5">
+              <label htmlFor="forgot-email" className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5">
                 Registered Email Address
               </label>
               <div className="relative">
                 <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
                 <input
+                  id="forgot-email"
+                  name="email"
                   type="email"
                   required
+                  autoComplete="username email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="alex@example.com"

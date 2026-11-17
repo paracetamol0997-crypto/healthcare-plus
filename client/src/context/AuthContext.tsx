@@ -16,7 +16,14 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(() => {
+    try {
+      const stored = localStorage.getItem('hc_user');
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  });
   const [token, setToken] = useState<string | null>(() => localStorage.getItem('hc_token'));
   const [loading, setLoading] = useState(true);
 
@@ -29,11 +36,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         const res = await api.getProfile();
         setUser(res.user);
+        localStorage.setItem('hc_user', JSON.stringify(res.user));
       } catch (err) {
-        console.warn('Session expired or profile unavailable, resetting session:', err);
-        localStorage.removeItem('hc_token');
-        setToken(null);
-        setUser(null);
+        console.warn('Profile sync check or serverless instance restart:', err);
+        // If we already have user details safely saved on the browser, retain them
+        const cachedUser = localStorage.getItem('hc_user');
+        if (!cachedUser) {
+          localStorage.removeItem('hc_token');
+          setToken(null);
+          setUser(null);
+        }
       } finally {
         setLoading(false);
       }
@@ -46,6 +58,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const res = await api.login(email, password);
       localStorage.setItem('hc_token', res.token);
+      localStorage.setItem('hc_user', JSON.stringify(res.user));
       setToken(res.token);
       setUser(res.user);
     } finally {
@@ -58,6 +71,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const res = await api.register(data);
       localStorage.setItem('hc_token', res.token);
+      localStorage.setItem('hc_user', JSON.stringify(res.user));
       setToken(res.token);
       setUser(res.user);
     } finally {
@@ -67,6 +81,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = () => {
     localStorage.removeItem('hc_token');
+    localStorage.removeItem('hc_user');
     setToken(null);
     setUser(null);
   };
@@ -74,6 +89,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateProfile = async (profile: Partial<User>) => {
     const res = await api.updateProfile(profile);
     setUser(res.user);
+    localStorage.setItem('hc_user', JSON.stringify(res.user));
   };
 
   return (

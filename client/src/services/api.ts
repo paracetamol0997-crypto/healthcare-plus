@@ -12,13 +12,13 @@ const API_BASE = '/api';
 
 const VAULT_KEY = 'hc_user_vault';
 
-interface VaultAccount {
+export interface VaultAccount {
   email: string;
   password?: string;
   profile: Partial<User>;
 }
 
-function getAccountVault(): Record<string, VaultAccount> {
+export function getAccountVault(): Record<string, VaultAccount> {
   try {
     const raw = localStorage.getItem(VAULT_KEY);
     return raw ? JSON.parse(raw) : {};
@@ -27,7 +27,7 @@ function getAccountVault(): Record<string, VaultAccount> {
   }
 }
 
-function saveAccountToVault(email: string, password?: string, profile?: Partial<User>) {
+export function saveAccountToVault(email: string, password?: string, profile?: Partial<User>) {
   try {
     const clean = email.trim().toLowerCase();
     const vault = getAccountVault();
@@ -41,6 +41,19 @@ function saveAccountToVault(email: string, password?: string, profile?: Partial<
       }
     };
     localStorage.setItem(VAULT_KEY, JSON.stringify(vault));
+  } catch (e) {}
+}
+
+export function saveBrowserCredential(email: string, password?: string, name?: string) {
+  try {
+    if (typeof window !== 'undefined' && (window as any).PasswordCredential && navigator.credentials?.store && password) {
+      const cred = new (window as any).PasswordCredential({
+        id: email.trim().toLowerCase(),
+        password: password,
+        name: name || email.trim().toLowerCase(),
+      });
+      navigator.credentials.store(cred).catch(() => {});
+    }
   } catch (e) {}
 }
 
@@ -74,6 +87,7 @@ export const api = {
       if (res.ok) {
         const data = await res.json();
         saveAccountToVault(cleanEmail, password, data.user);
+        saveBrowserCredential(cleanEmail, password, data.user?.name);
         return data;
       }
 
@@ -97,6 +111,7 @@ export const api = {
           if (syncRes.ok) {
             const syncData = await syncRes.json();
             saveAccountToVault(cleanEmail, password, syncData.user);
+            saveBrowserCredential(cleanEmail, password, syncData.user?.name);
             return syncData;
           }
         } catch (syncErr) {}
@@ -154,6 +169,7 @@ export const api = {
     }
     const result = await res.json();
     saveAccountToVault(cleanEmail, data.password, result.user);
+    saveBrowserCredential(cleanEmail, data.password, result.user?.name || cleanName);
     return result;
   },
 

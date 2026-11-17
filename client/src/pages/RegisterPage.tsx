@@ -42,10 +42,12 @@ export const RegisterPage: React.FC = () => {
     setError(null);
     setLoading(true);
 
+    const cleanEmail = email.trim().toLowerCase();
+
     try {
       await register({
-        name,
-        email,
+        name: name.trim(),
+        email: cleanEmail,
         password,
         age: age ? Number(age) : undefined,
         gender,
@@ -54,6 +56,7 @@ export const RegisterPage: React.FC = () => {
         fitnessGoals,
         mentalWellnessGoals
       });
+      localStorage.setItem('hc_remembered_email', cleanEmail);
       navigate('/dashboard');
     } catch (err: any) {
       setError(err.message || 'Registration failed');
@@ -94,16 +97,19 @@ export const RegisterPage: React.FC = () => {
 
         {/* STEP 1: Basic Info */}
         {step === 1 ? (
-          <form onSubmit={handleNext} className="space-y-4">
+          <form onSubmit={handleNext} method="post" className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5">
+              <label htmlFor="register-name" className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5">
                 Your Name
               </label>
               <div className="relative">
                 <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
                 <input
+                  id="register-name"
+                  name="name"
                   type="text"
                   required
+                  autoComplete="name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. Alex Morgan"
@@ -113,14 +119,17 @@ export const RegisterPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5">
+              <label htmlFor="register-email" className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5">
                 Email Address
               </label>
               <div className="relative">
                 <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
                 <input
+                  id="register-email"
+                  name="email"
                   type="email"
                   required
+                  autoComplete="username email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="alex@example.com"
@@ -130,15 +139,18 @@ export const RegisterPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5">
+              <label htmlFor="register-password" className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5">
                 Password (min. 6 characters)
               </label>
               <div className="relative">
                 <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
                 <input
+                  id="register-password"
+                  name="password"
                   type="password"
                   required
                   minLength={6}
+                  autoComplete="new-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
@@ -157,7 +169,12 @@ export const RegisterPage: React.FC = () => {
           </form>
         ) : (
           /* STEP 2: Health Profile Onboarding */
-          <form onSubmit={handleCompleteRegister} className="space-y-4">
+          <form onSubmit={handleCompleteRegister} method="post" className="space-y-4">
+            {/* Hidden fields so mobile and desktop browsers recognize and prompt to save credentials */}
+            <input type="hidden" name="name" value={name} autoComplete="name" />
+            <input type="hidden" name="email" value={email} autoComplete="username email" />
+            <input type="hidden" name="password" value={password} autoComplete="new-password" />
+
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div>
                 <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">
